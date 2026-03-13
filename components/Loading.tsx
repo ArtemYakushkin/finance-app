@@ -1,21 +1,23 @@
 import {
-  ActivityIndicator,
-  ActivityIndicatorProps,
-  StyleSheet,
-  View,
-} from "react-native";
-import React from "react";
-import { colors } from "@/constants/theme";
+	ActivityIndicator,
+	ActivityIndicatorProps,
+	StyleSheet,
+	View,
+} from 'react-native';
+import React from 'react';
+import { colors } from '@/constants/theme';
 
 const Loading = ({
-  size = "large",
-  color = colors.primary,
+	size = 'large',
+	color = colors.primaryLight,
 }: ActivityIndicatorProps) => {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <ActivityIndicator size={size} color={color} />
-    </View>
-  );
+	return (
+		<View
+			style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+		>
+			<ActivityIndicator size={size} color={color} />
+		</View>
+	);
 };
 
 export default Loading;

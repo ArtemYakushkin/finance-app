@@ -7,19 +7,19 @@ const [shortDimension, longDimension] =
     ? [SCREEN_WIDTH, SCREEN_HEIGHT]
     : [SCREEN_HEIGHT, SCREEN_WIDTH];
 
-const guidelineBaseWidth = 375;
-const guidelineBaseHeight = 812;
+const guidelineBaseWidth = 360;
+const guidelineBaseHeight = 800;
 
 export const scale = (size: number) =>
   Math.round(
     PixelRatio.roundToNearestPixel(
-      (shortDimension / guidelineBaseWidth) * (size as number)
-    )
+      (shortDimension / guidelineBaseWidth) * (size as number),
+    ),
   );
 
 export const verticalScale = (size: number) =>
   Math.round(
     PixelRatio.roundToNearestPixel(
-      (longDimension / guidelineBaseHeight) * (size as number)
-    )
+      (longDimension / guidelineBaseHeight) * (size as number),
+    ),
   );
