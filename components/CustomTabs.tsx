@@ -39,6 +39,13 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
+		transaction: (isFocused: boolean) => (
+			<Icons.Plus
+				size={verticalScale(28)}
+				weight={isFocused ? 'fill' : 'regular'}
+				color={isFocused ? colors.primaryLight : colors.neutral400}
+			/>
+		),
 	};
 
 	return (

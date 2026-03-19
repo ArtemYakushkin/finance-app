@@ -10,6 +10,7 @@ const _layout = () => {
 			<Tabs.Screen name="statistics" />
 			<Tabs.Screen name="wallet" />
 			<Tabs.Screen name="profile" />
+			<Tabs.Screen name="transaction" />
 		</Tabs>
 	);
 };
