@@ -40,6 +40,23 @@ const StackLayout = () => {
 					headerShown: false,
 				}}
 			/>
+			<Stack.Screen
+				name="(modals)/transactionModal"
+				options={{
+					gestureEnabled: true,
+					gestureDirection: 'vertical',
+					contentStyle: {
+						borderTopLeftRadius: Platform.OS === 'android' ? 30 : 0,
+						borderTopRightRadius:
+							Platform.OS === 'android' ? 30 : 0,
+						marginTop: Platform.OS === 'android' ? 40 : 0,
+						overflow: 'hidden',
+					},
+					presentation: 'transparentModal',
+					animation: 'fade_from_bottom',
+					headerShown: false,
+				}}
+			/>
 		</Stack>
 	);
 };

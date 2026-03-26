@@ -5,8 +5,11 @@ import TransactionList from '@/components/TransactionList';
 import Typo from '@/components/Typo';
 import { colors, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
+import useFetchData from '@/hooks/useFetchData';
+import { TransactionType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { useRouter } from 'expo-router';
+import { limit, orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -14,6 +17,18 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 const Home = () => {
 	const { user } = useAuth();
 	const router = useRouter();
+
+	const constrains = [
+		where('uid', '==', user?.uid),
+		orderBy('date', 'desc'),
+		limit(30),
+	];
+
+	const {
+		data: recentTransactions,
+		error,
+		loading: transactionsLoading,
+	} = useFetchData<TransactionType>('transactions', constrains);
 
 	return (
 		<ScreenWrapper>
@@ -45,12 +60,22 @@ const Home = () => {
 						<HomeCard />
 					</View>
 					<TransactionList
-						data={[]}
-						loading={false}
+						data={recentTransactions}
+						loading={transactionsLoading}
 						emptyListMessage="No transactions added yet!"
-						// title="Recent Transactions"
 					/>
 				</ScrollView>
+
+				<Button
+					style={styles.floatingButton}
+					onPress={() => router.push('/(modals)/transactionModal')}
+				>
+					<Icons.Plus
+						color={colors.primaryLight}
+						weight="bold"
+						size={verticalScale(24)}
+					/>
+				</Button>
 			</View>
 		</ScreenWrapper>
 	);
@@ -79,5 +104,13 @@ const styles = StyleSheet.create({
 		marginTop: spacingY._10,
 		paddingBottom: verticalScale(100),
 		gap: spacingY._25,
+	},
+	floatingButton: {
+		height: verticalScale(50),
+		width: verticalScale(50),
+		borderRadius: 100,
+		position: 'absolute',
+		bottom: verticalScale(30),
+		right: verticalScale(30),
 	},
 });

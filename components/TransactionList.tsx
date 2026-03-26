@@ -1,8 +1,14 @@
-import { expenseCategories } from '@/constants/data';
+import { expenseCategories, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
-import { TransactionItemProps, TransactionListType } from '@/types';
+import {
+	TransactionItemProps,
+	TransactionListType,
+	TransactionType,
+} from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { FlashList } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
+import { Timestamp } from 'firebase/firestore';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Loading from './Loading';
@@ -14,7 +20,23 @@ const TransactionList = ({
 	loading,
 	emptyListMessage,
 }: TransactionListType) => {
-	const handleClick = () => {};
+	const router = useRouter();
+
+	const handleClick = (item: TransactionType) => {
+		router.push({
+			pathname: '/(modals)/transactionModal',
+			params: {
+				id: item?.id,
+				type: item?.type,
+				amount: item?.amount.toString(),
+				category: item?.category,
+				date: (item.date as Timestamp)?.toDate()?.toISOString(),
+				description: item?.description,
+				uid: item?.uid,
+				walletId: item?.walletId,
+			},
+		});
+	};
 
 	return (
 		<View style={styles.container}>
@@ -61,8 +83,45 @@ const TransactionItem = ({
 	index,
 	handleClick,
 }: TransactionItemProps) => {
-	let category = expenseCategories['groceries'];
+	const getCategoryInfo = () => {
+		if (item?.type === 'income')
+			return { groupLabel: 'Income', data: incomeCategory };
+
+		// Словарь для красивого отображения ключей групп
+		const groupNames: Record<string, string> = {
+			needs: 'Needs',
+			desires: 'Desires',
+			saving: 'Saving',
+		};
+
+		for (const group in expenseCategories) {
+			const found = expenseCategories[
+				group as keyof typeof expenseCategories
+			].find((cat) => cat.value === item.category);
+			if (found) {
+				return {
+					groupLabel: groupNames[group] || group,
+					data: found,
+				};
+			}
+		}
+
+		return {
+			groupLabel: 'Other',
+			data: {
+				label: item.category || 'Unknown',
+				icon: null,
+				bgColor: colors.neutral500,
+			},
+		};
+	};
+
+	const { groupLabel, data: category } = getCategoryInfo();
 	const IconComponent = category.icon;
+
+	const date = (item?.date as Timestamp)
+		?.toDate()
+		?.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 	return (
 		<View>
@@ -82,21 +141,32 @@ const TransactionItem = ({
 					)}
 				</View>
 				<View style={styles.categoryDes}>
-					<Typo size={17}>{category.label}</Typo>
+					<Typo size={17}>
+						{item?.type === 'income'
+							? category.label
+							: `${groupLabel} / ${category.label}`}
+					</Typo>
 					<Typo
 						size={12}
 						color={colors.neutral400}
 						textProps={{ numberOfLines: 1 }}
 					>
-						paid wifi
+						{item?.description}
 					</Typo>
 				</View>
 				<View style={styles.amountDate}>
-					<Typo fontWeight={500} color={colors.primaryLight}>
-						651
+					<Typo
+						fontWeight={500}
+						color={
+							item?.type == 'income'
+								? colors.primary
+								: colors.rose
+						}
+					>
+						{`${item?.type == 'income' ? '+ $' : '- $'}${item?.amount}`}
 					</Typo>
 					<Typo size={13} color={colors.neutral400}>
-						12 Jun
+						{date}
 					</Typo>
 				</View>
 			</TouchableOpacity>
