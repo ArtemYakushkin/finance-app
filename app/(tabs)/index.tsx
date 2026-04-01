@@ -96,9 +96,11 @@ const styles = StyleSheet.create({
 		marginBottom: spacingY._10,
 	},
 	searchIcon: {
-		backgroundColor: colors.neutral700,
+		backgroundColor: colors.gradientStart,
 		padding: spacingX._10,
 		borderRadius: 50,
+		borderColor: colors.neutral200,
+		borderWidth: 1,
 	},
 	scrollViewStyle: {
 		marginTop: spacingY._10,
@@ -111,6 +113,6 @@ const styles = StyleSheet.create({
 		borderRadius: 100,
 		position: 'absolute',
 		bottom: verticalScale(30),
-		right: verticalScale(30),
+		right: verticalScale(20),
 	},
 });

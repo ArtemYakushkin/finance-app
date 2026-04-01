@@ -1,32 +1,49 @@
-import { colors } from "@/constants/theme";
-import { ScreenWrapperProps } from "@/types";
-import React from "react";
+import { colors } from '@/constants/theme'; // Теперь colors используется!
+import { ScreenWrapperProps } from '@/types';
+import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
 import {
-  Dimensions,
-  Platform,
-  StatusBar,
-  StyleSheet,
-  View,
-} from "react-native";
+	Dimensions,
+	Platform,
+	StatusBar,
+	StyleSheet,
+	View,
+} from 'react-native';
 
-const { height } = Dimensions.get("window");
+const { height } = Dimensions.get('window');
 
 const ScreenWrapper = ({ style, children }: ScreenWrapperProps) => {
-  let paddingTop = Platform.OS == "ios" ? height * 0.06 : 50;
+	let paddingTop = Platform.OS == 'ios' ? height * 0.06 : 50;
 
-  return (
-    <View
-      style={[
-        { paddingTop, flex: 1, backgroundColor: colors.neutral900 },
-        style,
-      ]}
-    >
-      <StatusBar barStyle="light-content" />
-      {children}
-    </View>
-  );
+	return (
+		<LinearGradient
+			colors={[
+				colors.gradientStart,
+				colors.gradientMid,
+				colors.gradientEnd,
+			]}
+			start={{ x: 0.5, y: 0 }}
+			end={{ x: 0.5, y: 1 }}
+			locations={[0, 0.45, 1]}
+			style={[styles.container, { paddingTop }, style]}
+		>
+			<StatusBar
+				barStyle="light-content"
+				translucent={true}
+				backgroundColor="transparent"
+			/>
+			<View style={styles.content}>{children}</View>
+		</LinearGradient>
+	);
 };
 
-export default ScreenWrapper;
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+	content: {
+		flex: 1,
+	},
+});
 
-const styles = StyleSheet.create({});
+export default ScreenWrapper;

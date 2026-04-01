@@ -1,6 +1,7 @@
 import { colors } from '@/constants/theme';
 import { ModalWrapperProps } from '@/types';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -10,12 +11,14 @@ import {
 	View,
 } from 'react-native';
 
-const ModalWrapper = ({
-	style,
-	children,
-	bg = colors.neutral900,
-}: ModalWrapperProps) => {
+const ModalWrapper = ({ style, children }: ModalWrapperProps) => {
 	const router = useRouter();
+
+	const gradientColors: [string, string, string] = [
+		colors.gradientStart,
+		colors.gradientMid,
+		colors.gradientEnd,
+	];
 
 	return (
 		<View style={styles.container}>
@@ -30,16 +33,22 @@ const ModalWrapper = ({
 					<View
 						style={[
 							StyleSheet.absoluteFill,
-							{ backgroundColor: 'rgba(0, 0, 0, 0.91)' },
+							{ backgroundColor: 'rgba(0, 0, 0, 0.8)' },
 						]}
 					/>
 				)}
 			</TouchableWithoutFeedback>
 
-			<View style={[styles.content, { backgroundColor: bg }, style]}>
+			<LinearGradient
+				colors={gradientColors}
+				start={{ x: 0.5, y: 0 }}
+				end={{ x: 0.5, y: 1 }}
+				locations={[0, 0.45, 1]}
+				style={[styles.content, style]}
+			>
 				<View style={styles.handle} />
 				{children}
-			</View>
+			</LinearGradient>
 		</View>
 	);
 };
@@ -54,22 +63,21 @@ const styles = StyleSheet.create({
 	content: {
 		height: '90%',
 		width: '100%',
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
+		borderTopLeftRadius: 30,
+		borderTopRightRadius: 30,
 		overflow: 'hidden',
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: -10 },
-		shadowOpacity: 0.3,
-		shadowRadius: 10,
-		elevation: 20,
+		borderTopWidth: 1,
+		borderLeftWidth: 0.5,
+		borderRightWidth: 0.5,
+		borderColor: 'rgba(255, 255, 255, 0.1)',
 	},
 	handle: {
-		width: 70,
+		width: 40,
 		height: 5,
 		backgroundColor: 'rgba(255,255,255,0.2)',
 		borderRadius: 5,
 		alignSelf: 'center',
-		marginTop: 10,
-		marginBottom: 15,
+		marginTop: 12,
+		marginBottom: 10,
 	},
 });

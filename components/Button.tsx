@@ -1,6 +1,7 @@
-import { radius } from '@/constants/theme';
+import { colors, radius } from '@/constants/theme';
 import { CustomButtonProps } from '@/types';
 import { verticalScale } from '@/utils/styling';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
@@ -12,8 +13,14 @@ const Button = ({
 	loading = false,
 	children,
 }: CustomButtonProps) => {
-	const bgColor = '#171717';
 	const btnRadius = radius._17;
+
+	const gradientColors: [string, string, ...string[]] = [
+		colors.gradientStart,
+		colors.gradientMid,
+	];
+	const lightShadow = 'rgba(65, 71, 85, 0.5)';
+	const darkShadow = colors.gradientEnd;
 
 	if (loading) {
 		return (
@@ -32,32 +39,33 @@ const Button = ({
 	return (
 		<View style={[styles.container, style]}>
 			<Shadow
-				distance={7}
-				startColor={'#262626'}
-				offset={[-2, -2]}
+				distance={6}
+				startColor={lightShadow}
+				offset={[-1, -1]}
 				stretch
+				containerStyle={{ borderRadius: btnRadius }}
 				style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 			>
 				<Shadow
-					distance={7}
-					startColor={'#101010'}
-					offset={[2, 2]}
+					distance={8}
+					startColor={darkShadow}
+					offset={[3, 3]}
 					stretch
 					style={styles.shadowWrapper}
 				>
 					<TouchableOpacity
 						onPress={onPress}
-						activeOpacity={0.8}
-						style={[
-							styles.button,
-							{
-								backgroundColor: bgColor,
-								borderRadius: btnRadius,
-								pointerEvents: 'box-none',
-							},
-						]}
+						activeOpacity={0.9}
+						style={{ borderRadius: btnRadius, overflow: 'hidden' }}
 					>
-						{children}
+						<LinearGradient
+							colors={gradientColors}
+							start={{ x: 0, y: 0 }}
+							end={{ x: 1, y: 1 }}
+							style={[styles.button, { borderRadius: btnRadius }]}
+						>
+							{children}
+						</LinearGradient>
 					</TouchableOpacity>
 				</Shadow>
 			</Shadow>
@@ -70,19 +78,18 @@ export default Button;
 const styles = StyleSheet.create({
 	container: {
 		alignSelf: 'stretch',
+		margin: 5,
 	},
 	shadowWrapper: {
 		alignSelf: 'stretch',
 	},
 	button: {
-		borderRadius: radius._17,
-		borderCurve: 'continuous',
 		height: verticalScale(52),
 		width: '100%',
 		paddingHorizontal: 16,
 		justifyContent: 'center',
 		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: '#1B1B1B',
+		borderWidth: 0.8,
+		borderColor: 'rgba(255, 255, 255, 0.08)',
 	},
 });

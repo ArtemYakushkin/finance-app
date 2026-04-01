@@ -1,44 +1,64 @@
 import { colors, radius, spacingX } from '@/constants/theme';
 import { InputProps } from '@/types';
 import { verticalScale } from '@/utils/styling';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
 const Input = (props: InputProps) => {
-	const bgColor = 'rgb(23, 23, 23)';
 	const btnRadius = radius._17;
+	const innerLightShadow = 'rgba(65, 71, 85, 0.4)';
+	const innerDarkShadow = 'rgba(0, 0, 0, 0.8)';
+
+	const concavedGradientColors: [string, string] = [
+		colors.gradientMid as string,
+		colors.gradientEnd as string,
+	];
 
 	return (
 		<View style={[styles.outerContainer, props.containerStyle]}>
 			<View
 				style={[
-					styles.innerShadowWrapper,
-					{ borderRadius: btnRadius, backgroundColor: bgColor },
+					styles.baseBackground,
+					{
+						borderRadius: btnRadius,
+					},
 				]}
 			>
 				<Shadow
-					distance={8}
-					startColor={'rgba(0, 0, 0, 0.7)'}
-					offset={[4, 4]}
+					distance={10}
+					startColor={innerDarkShadow}
+					offset={[3, 3]}
 					stretch
 					style={styles.fullWidth}
 				>
 					<Shadow
 						distance={8}
-						startColor={'rgba(45, 45, 45, 0.4)'}
+						startColor={innerLightShadow}
 						offset={[-3, -3]}
 						stretch
 						style={styles.fullWidth}
 					>
-						<View style={styles.container}>
-							{props.icon && props.icon}
-							<TextInput
-								style={[styles.input, props.inputStyle]}
-								placeholderTextColor={colors.neutral400}
-								{...props}
-							/>
-						</View>
+						<LinearGradient
+							colors={concavedGradientColors}
+							start={{ x: 0.5, y: 0 }}
+							end={{ x: 0.5, y: 1 }}
+							style={[
+								styles.container,
+								{ borderRadius: btnRadius },
+							]}
+						>
+							<View style={styles.inputContent}>
+								{props.icon && props.icon}
+								<TextInput
+									style={[styles.input, props.inputStyle]}
+									placeholderTextColor={colors.neutral400}
+									cursorColor={colors.primary}
+									{...props}
+								/>
+							</View>
+						</LinearGradient>
 					</Shadow>
 				</Shadow>
 			</View>
@@ -52,9 +72,11 @@ const styles = StyleSheet.create({
 	outerContainer: {
 		alignSelf: 'stretch',
 	},
-	innerShadowWrapper: {
+	baseBackground: {
+		alignSelf: 'stretch',
 		overflow: 'hidden',
 		borderWidth: 1,
+		borderColor: 'rgba(255, 255, 255, 0.03)',
 	},
 	fullWidth: {
 		alignSelf: 'stretch',
@@ -63,6 +85,12 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		height: verticalScale(54),
 		alignItems: 'center',
+		gap: spacingX._10,
+	},
+	inputContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'center',
 		paddingHorizontal: spacingX._15,
 		gap: spacingX._10,
 	},
@@ -70,5 +98,6 @@ const styles = StyleSheet.create({
 		flex: 1,
 		color: colors.white,
 		fontSize: verticalScale(14),
+		paddingVertical: 0,
 	},
 });

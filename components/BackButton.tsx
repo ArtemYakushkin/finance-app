@@ -6,27 +6,35 @@ import { CaretLeftIcon } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const BackButton = ({ style, iconSize = 26 }: BackButtonProps) => {
 	const router = useRouter();
 	const bgColor = '#171717';
 	const btnRadius = radius._12;
+	const gradientColors: [string, string, ...string[]] = [
+		colors.gradientStart,
+		colors.gradientMid,
+	];
+	const lightShadow = 'rgba(65, 71, 85, 0.5)';
+	const darkShadow = colors.gradientEnd;
 
 	return (
 		<View style={[styles.outerContainer, style]}>
 			<Shadow
-				distance={3}
-				startColor={'#262626'}
-				offset={[-2, -2]}
+				distance={6}
+				startColor={lightShadow}
+				offset={[-1, -1]}
 				stretch
-				style={{ borderRadius: btnRadius, pointerEvents: 'box-none' }}
+				containerStyle={{ borderRadius: btnRadius }}
+				style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 			>
 				<Shadow
-					distance={3}
-					startColor={'#101010'}
-					offset={[2, 2]}
+					distance={8}
+					startColor={darkShadow}
+					offset={[3, 3]}
 					stretch
-					style={{ pointerEvents: 'box-none' }}
+					style={styles.shadowWrapper}
 				>
 					<TouchableOpacity
 						onPress={(e) => {
@@ -36,14 +44,21 @@ const BackButton = ({ style, iconSize = 26 }: BackButtonProps) => {
 								router.back();
 							}
 						}}
-						activeOpacity={0.7}
-						style={[styles.button, { backgroundColor: bgColor }]}
+						activeOpacity={0.9}
+						style={{ borderRadius: btnRadius, overflow: 'hidden' }}
 					>
-						<CaretLeftIcon
-							size={verticalScale(iconSize)}
-							color={colors.primaryLight}
-							weight="bold"
-						/>
+						<LinearGradient
+							colors={gradientColors}
+							start={{ x: 0, y: 0 }}
+							end={{ x: 1, y: 1 }}
+							style={[styles.button, { borderRadius: btnRadius }]}
+						>
+							<CaretLeftIcon
+								size={verticalScale(iconSize)}
+								color={colors.primaryLight}
+								weight="bold"
+							/>
+						</LinearGradient>
 					</TouchableOpacity>
 				</Shadow>
 			</Shadow>
@@ -64,8 +79,11 @@ const styles = StyleSheet.create({
 		borderRadius: radius._12,
 		justifyContent: 'center',
 		alignItems: 'center',
-		borderWidth: 1,
-		borderColor: '#1B1B1B',
+		borderWidth: 0.8,
+		borderColor: 'rgba(255, 255, 255, 0.08)',
 		zIndex: 100,
+	},
+	shadowWrapper: {
+		alignSelf: 'stretch',
 	},
 });

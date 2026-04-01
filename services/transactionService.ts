@@ -1,12 +1,18 @@
 import { firestore } from '@/config/firebase';
 import { ResponseType, TransactionType, WalletType } from '@/types';
+import { getLast7Days } from '@/utils/common';
 import {
 	collection,
 	deleteDoc,
 	doc,
 	getDoc,
+	getDocs,
+	orderBy,
+	query,
 	setDoc,
+	Timestamp,
 	updateDoc,
+	where,
 } from 'firebase/firestore';
 
 export const createOrUpdateTransaction = async (
@@ -244,6 +250,38 @@ export const deleteTransaction = async (
 		return { success: true };
 	} catch (error: any) {
 		console.error('Error deleting transaction:', error);
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchWeekStats = async (uid: string): Promise<ResponseType> => {
+	try {
+		const db = firestore;
+		const today = new Date();
+		const sevenDaysAgo = new Date(today);
+		sevenDaysAgo.setDate(today.getDate() - 7);
+
+		const transactionsQuery = query(
+			collection(db, 'transactions'),
+			where('date', '>=', Timestamp.fromDate(sevenDaysAgo)),
+			where('date', '<=', Timestamp.fromDate(today)),
+			orderBy('date', 'desc'),
+			where('uid', '==', uid),
+		);
+
+		const querySnapshot = await getDocs(transactionsQuery);
+		const weeklyData = getLast7Days();
+		const transactions: TransactionType[] = [];
+
+		querySnapshot.forEach((doc) => {
+			const transaction = doc.data() as TransactionType;
+			transaction.id = doc.id;
+			transactions.push(transaction);
+		});
+
+		return { success: true };
+	} catch (error: any) {
+		console.error('Error fetching weekly stats:', error);
 		return { success: false, msg: error.message };
 	}
 };

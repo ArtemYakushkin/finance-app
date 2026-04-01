@@ -7,10 +7,11 @@ import {
 } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { FlashList } from '@shopify/flash-list';
+import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Loading from './Loading';
 import Typo from './Typo';
 
@@ -87,7 +88,6 @@ const TransactionItem = ({
 		if (item?.type === 'income')
 			return { groupLabel: 'Income', data: incomeCategory };
 
-		// Словарь для красивого отображения ключей групп
 		const groupNames: Record<string, string> = {
 			needs: 'Needs',
 			desires: 'Desires',
@@ -124,52 +124,56 @@ const TransactionItem = ({
 		?.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 	return (
-		<View>
-			<TouchableOpacity
-				style={styles.row}
-				onPress={() => handleClick(item)}
-			>
-				<View
-					style={[styles.icon, { backgroundColor: category.bgColor }]}
-				>
-					{IconComponent && (
-						<IconComponent
-							size={verticalScale(25)}
-							weight="fill"
-							color={colors.white}
-						/>
-					)}
-				</View>
-				<View style={styles.categoryDes}>
-					<Typo size={17}>
-						{item?.type === 'income'
-							? category.label
-							: `${groupLabel} / ${category.label}`}
-					</Typo>
-					<Typo
-						size={12}
-						color={colors.neutral400}
-						textProps={{ numberOfLines: 1 }}
+		<View style={{ marginBottom: spacingY._12 }}>
+			<Pressable onPress={() => handleClick(item)}>
+				<BlurView intensity={25} tint="dark" style={styles.row}>
+					<View
+						style={[
+							styles.icon,
+							{ backgroundColor: category.bgColor },
+						]}
 					>
-						{item?.description}
-					</Typo>
-				</View>
-				<View style={styles.amountDate}>
-					<Typo
-						fontWeight={500}
-						color={
-							item?.type == 'income'
-								? colors.primary
-								: colors.rose
-						}
-					>
-						{`${item?.type == 'income' ? '+ $' : '- $'}${item?.amount}`}
-					</Typo>
-					<Typo size={13} color={colors.neutral400}>
-						{date}
-					</Typo>
-				</View>
-			</TouchableOpacity>
+						{IconComponent && (
+							<IconComponent
+								size={verticalScale(25)}
+								weight="fill"
+								color={colors.white}
+							/>
+						)}
+					</View>
+
+					<View style={styles.categoryDes}>
+						<Typo size={17} fontWeight={'600'}>
+							{item?.type === 'income'
+								? category.label
+								: `${groupLabel} / ${category.label}`}
+						</Typo>
+						<Typo
+							size={12}
+							color={colors.neutral400}
+							textProps={{ numberOfLines: 1 }}
+						>
+							{item?.description}
+						</Typo>
+					</View>
+
+					<View style={styles.amountDate}>
+						<Typo
+							fontWeight={'700'}
+							color={
+								item?.type == 'income'
+									? colors.primary
+									: colors.rose
+							}
+						>
+							{`${item?.type == 'income' ? '+ $' : '- $'}${item?.amount}`}
+						</Typo>
+						<Typo size={13} color={colors.neutral400}>
+							{date}
+						</Typo>
+					</View>
+				</BlurView>
+			</Pressable>
 		</View>
 	);
 };
@@ -188,11 +192,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		gap: spacingX._12,
-		marginBottom: spacingY._12,
-		backgroundColor: colors.neutral800,
-		padding: spacingY._10,
-		paddingHorizontal: spacingY._10,
+		backgroundColor: 'rgba(41, 46, 58, 0.07)',
+		padding: spacingY._12,
 		borderRadius: radius._17,
+		overflow: 'hidden',
+		borderWidth: 1,
+		borderColor: 'rgba(255, 255, 255, 0.1)',
 	},
 	icon: {
 		height: verticalScale(44),

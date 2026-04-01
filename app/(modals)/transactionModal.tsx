@@ -20,6 +20,7 @@ import {
 import { TransactionType, WalletType } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
@@ -52,6 +53,14 @@ const TransactionModal = () => {
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showCalculator, setShowCalculator] = useState(false);
 	const router = useRouter();
+
+	const btnRadius = radius._17;
+	const lightShadow = 'rgba(65, 71, 85, 0.5)';
+	const darkShadow = colors.gradientEnd;
+	const concavedGradientColors: [string, string] = [
+		colors.gradientMid as string,
+		colors.gradientEnd as string,
+	];
 
 	const {
 		data: wallets,
@@ -253,22 +262,26 @@ const TransactionModal = () => {
 						</Typo>
 						<View style={styles.dropdownShadowHolder}>
 							<Shadow
-								distance={7}
-								startColor={'#262626'}
-								offset={[-2, -2]}
+								distance={6}
+								startColor={lightShadow}
+								offset={[-1, -1]}
 								stretch
-								style={{ borderRadius: radius._17 }}
+								containerStyle={{ borderRadius: btnRadius }}
+								style={[
+									styles.shadowWrapper,
+									{ borderRadius: btnRadius },
+								]}
 							>
 								<Shadow
-									distance={7}
-									startColor={'#101010'}
-									offset={[2, 2]}
+									distance={8}
+									startColor={darkShadow}
+									offset={[3, 3]}
 									stretch
-									style={{ borderRadius: radius._17 }}
+									style={styles.shadowWrapper}
 								>
 									<Dropdown
 										style={styles.dropdownContainer}
-										activeColor={colors.neutral700}
+										activeColor={colors.gradientStart}
 										placeholderStyle={
 											styles.dropdownPlaceholder
 										}
@@ -357,27 +370,31 @@ const TransactionModal = () => {
 									</Typo>
 									<View style={styles.dropdownShadowHolder}>
 										<Shadow
-											distance={7}
-											startColor={'#262626'}
-											offset={[-2, -2]}
+											distance={6}
+											startColor={lightShadow}
+											offset={[-1, -1]}
 											stretch
-											style={{ borderRadius: radius._17 }}
+											containerStyle={{
+												borderRadius: btnRadius,
+											}}
+											style={[
+												styles.shadowWrapper,
+												{ borderRadius: btnRadius },
+											]}
 										>
 											<Shadow
-												distance={7}
-												startColor={'#101010'}
-												offset={[2, 2]}
+												distance={8}
+												startColor={darkShadow}
+												offset={[3, 3]}
 												stretch
-												style={{
-													borderRadius: radius._17,
-												}}
+												style={styles.shadowWrapper}
 											>
 												<Dropdown
 													style={
 														styles.dropdownContainer
 													}
 													activeColor={
-														colors.neutral700
+														colors.gradientStart
 													}
 													placeholderStyle={
 														styles.dropdownPlaceholder
@@ -429,43 +446,50 @@ const TransactionModal = () => {
 						<Typo color={colors.neutral200} size={16}>
 							Date
 						</Typo>
+
 						{!showDatePicker && (
 							<View
 								style={[
-									styles.innerShadowWrapper,
-									{
-										borderRadius: radius._17,
-										backgroundColor: colors.neutral900,
-										marginHorizontal: spacingX._5,
-									},
+									styles.baseBackground,
+									{ borderRadius: btnRadius },
 								]}
 							>
 								<Shadow
-									distance={8}
-									startColor={'rgba(0, 0, 0, 0.7)'}
-									offset={[4, 4]}
+									distance={10}
+									startColor={'rgba(0, 0, 0, 0.8)'}
+									offset={[3, 3]}
 									stretch
-									style={{ alignSelf: 'stretch' }}
+									style={styles.fullWidth}
 								>
 									<Shadow
 										distance={8}
-										startColor={'rgba(45, 45, 45, 0.4)'}
+										startColor={'rgba(65, 71, 85, 0.4)'}
 										offset={[-3, -3]}
 										stretch
-										style={{ alignSelf: 'stretch' }}
+										style={styles.fullWidth}
 									>
-										<Pressable
-											style={styles.dateInput}
-											onPress={() =>
-												setShowDatePicker(true)
-											}
+										<LinearGradient
+											colors={concavedGradientColors}
+											start={{ x: 0.5, y: 0 }}
+											end={{ x: 0.5, y: 1 }}
+											style={[
+												styles.containerDate,
+												{ borderRadius: btnRadius },
+											]}
 										>
-											<Typo size={14}>
-												{(
-													transaction.date as Date
-												).toLocaleDateString()}
-											</Typo>
-										</Pressable>
+											<Pressable
+												style={styles.dateInput}
+												onPress={() =>
+													setShowDatePicker(true)
+												}
+											>
+												<Typo size={14}>
+													{(
+														transaction.date as Date
+													).toLocaleDateString()}
+												</Typo>
+											</Pressable>
+										</LinearGradient>
 									</Shadow>
 								</Shadow>
 							</View>
@@ -485,12 +509,15 @@ const TransactionModal = () => {
 									display="spinner"
 									onChange={onDateChange}
 								/>
-
 								{Platform.OS == 'ios' && (
 									<TouchableOpacity
 										onPress={() => setShowDatePicker(false)}
 									>
-										<Typo size={15} fontWeight={500}>
+										<Typo
+											size={15}
+											fontWeight={500}
+											color={colors.primary}
+										>
 											Ok
 										</Typo>
 									</TouchableOpacity>
@@ -499,46 +526,25 @@ const TransactionModal = () => {
 						)}
 					</View>
 
-					{/* <View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
-							Amount
-						</Typo>
-						<View style={{ marginHorizontal: spacingX._5 }}>
-							<Input
-								keyboardType="numeric"
-								value={transaction.amount?.toString()}
-								onChangeText={(value) =>
-									setTransaction({
-										...transaction,
-										amount: Number(
-											value.replace(/[^0-9]/g, ''),
-										),
-									})
-								}
-							/>
-						</View>
-					</View> */}
-
 					<View style={styles.inputContainer}>
 						<Typo color={colors.neutral200} size={16}>
 							Amount
 						</Typo>
-						<Pressable
-							onPress={() => setShowCalculator(true)} // Открываем по нажатию на область
-							style={{ marginHorizontal: spacingX._5 }}
-						>
+						<Pressable onPress={() => setShowCalculator(true)}>
 							<View pointerEvents="none">
 								<Input
 									placeholder="0"
 									value={transaction.amount?.toString()}
-									editable={false} // Чтобы системная клавиатура не мешала
+									editable={false}
 								/>
 							</View>
 						</Pressable>
 					</View>
 
 					<View style={[styles.inputContainer, { marginBottom: 30 }]}>
-						<Typo color={colors.neutral200}>Description</Typo>
+						<Typo color={colors.neutral200} size={16}>
+							Description
+						</Typo>
 						<Input
 							value={transaction.description}
 							onChangeText={(value) =>
@@ -607,6 +613,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: spacingX._10,
 		marginTop: spacingX._10,
 	},
+	shadowWrapper: {
+		alignSelf: 'stretch',
+	},
 	dropdownShadowHolder: {
 		marginHorizontal: spacingX._10,
 		marginTop: spacingY._10,
@@ -616,7 +625,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingHorizontal: spacingX._15,
 		borderCurve: 'continuous',
-		backgroundColor: '#171717',
+		backgroundColor: '#292e3a',
 		borderRadius: radius._17,
 		borderColor: '#1B1B1B',
 	},
@@ -639,12 +648,12 @@ const styles = StyleSheet.create({
 		marginHorizontal: spacingX._7,
 	},
 	dropdownListContainer: {
-		backgroundColor: colors.neutral900,
+		backgroundColor: colors.gradientEnd,
 		borderRadius: radius._15,
 		borderCurve: 'continuous',
 		paddingVertical: spacingY._7,
 		top: 5,
-		borderColor: colors.neutral500,
+		borderColor: colors.gradientStart,
 		shadowColor: colors.black,
 		shadowOffset: { width: 0, height: 5 },
 		shadowOpacity: 1,
@@ -704,5 +713,20 @@ const styles = StyleSheet.create({
 	},
 	inputContainer: {
 		gap: spacingY._10,
+	},
+	baseBackground: {
+		alignSelf: 'stretch',
+		overflow: 'hidden',
+		borderWidth: 1,
+		borderColor: 'rgba(255, 255, 255, 0.03)',
+	},
+	fullWidth: {
+		alignSelf: 'stretch',
+	},
+	containerDate: {
+		flexDirection: 'row',
+		height: verticalScale(54),
+		alignItems: 'center',
+		gap: spacingX._10,
 	},
 });

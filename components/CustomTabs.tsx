@@ -1,6 +1,7 @@
 import { colors, radius, spacingY } from '@/constants/theme';
 import { verticalScale } from '@/utils/styling';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -39,14 +40,14 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
-		// transaction: (isFocused: boolean) => (
-		// 	<Icons.Plus
-		// 		size={verticalScale(28)}
-		// 		weight={isFocused ? 'fill' : 'regular'}
-		// 		color={isFocused ? colors.primaryLight : colors.neutral400}
-		// 	/>
-		// ),
 	};
+
+	const gradientColors: [string, string, ...string[]] = [
+		colors.gradientStart,
+		colors.gradientMid,
+	];
+	const lightShadow = 'rgba(65, 71, 85, 0.5)';
+	const darkShadow = colors.gradientEnd;
 
 	return (
 		<View style={[styles.tabbar]}>
@@ -69,19 +70,20 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 					<View key={route.name} style={styles.itemWrapper}>
 						{isFocused ? (
 							<Shadow
-								distance={7}
-								startColor={'#262626'}
-								offset={[-2, -2]}
+								distance={6}
+								startColor={lightShadow}
+								offset={[-1, -1]}
 								stretch
+								containerStyle={{ borderRadius: btnRadius }}
 								style={[
 									styles.shadowWrapper,
 									{ borderRadius: btnRadius },
 								]}
 							>
 								<Shadow
-									distance={7}
-									startColor={'#101010'}
-									offset={[2, 2]}
+									distance={8}
+									startColor={darkShadow}
+									offset={[3, 3]}
 									stretch
 									style={styles.shadowWrapper}
 								>
@@ -93,7 +95,19 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 											{ backgroundColor: bgColor },
 										]}
 									>
-										{tabbarIcons[route.name]?.(isFocused)}
+										<LinearGradient
+											colors={gradientColors}
+											start={{ x: 0, y: 0 }}
+											end={{ x: 1, y: 1 }}
+											style={[
+												styles.button,
+												{ borderRadius: btnRadius },
+											]}
+										>
+											{tabbarIcons[route.name]?.(
+												isFocused,
+											)}
+										</LinearGradient>
 									</TouchableOpacity>
 								</Shadow>
 							</Shadow>
@@ -120,8 +134,9 @@ const styles = StyleSheet.create({
 		width: '100%',
 		justifyContent: 'space-around',
 		alignItems: 'center',
-		backgroundColor: colors.neutral900,
+		backgroundColor: colors.gradientEnd,
 		paddingBottom: Platform.OS === 'ios' ? spacingY._20 : spacingY._60,
+		paddingTop: 15,
 	},
 	shadowWrapper: {
 		alignSelf: 'stretch',
@@ -140,5 +155,14 @@ const styles = StyleSheet.create({
 	activeItem: {
 		borderWidth: 1,
 		borderColor: '#1B1B1B',
+	},
+	button: {
+		height: verticalScale(50),
+		width: '100%',
+		paddingHorizontal: 16,
+		justifyContent: 'center',
+		alignItems: 'center',
+		borderWidth: 0.8,
+		borderColor: 'rgba(255, 255, 255, 0.08)',
 	},
 });

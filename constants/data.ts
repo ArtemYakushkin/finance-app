@@ -3,9 +3,9 @@ import { CategoryType } from '@/types';
 import * as Icons from 'phosphor-react-native';
 
 export const categoryGroups = [
-	{ label: 'Needs', value: 'needs', color: '#075985' },
-	{ label: 'Desires', value: 'desires', color: '#be185d' },
-	{ label: 'Saving', value: 'saving', color: '#065F46' },
+	{ label: 'Needs', value: 'needs', color: '#4a90e2' },
+	{ label: 'Desires', value: 'desires', color: '#ef4444' },
+	{ label: 'Saving', value: 'saving', color: '#a3e635' },
 ];
 
 export const expenseCategories = {
