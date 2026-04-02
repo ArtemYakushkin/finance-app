@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
 		marginRight: spacingX._20,
 	},
 	footer: {
-		backgroundColor: colors.neutral900,
 		alignItems: 'center',
 		paddingTop: verticalScale(30),
 		paddingBottom: verticalScale(72),

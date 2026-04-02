@@ -1,5 +1,6 @@
 import { colors, radius, spacingX } from '@/constants/theme';
 import { scale, verticalScale } from '@/utils/styling';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Icons from 'phosphor-react-native';
 import React, { useState } from 'react';
 import {
@@ -26,7 +27,7 @@ interface CalcButtonProps {
 	onPress: () => void;
 	isDone?: boolean;
 	isEqual?: boolean;
-	isDouble?: boolean; // Проп для широких кнопок
+	isDouble?: boolean;
 }
 
 const CalcButton = ({
@@ -36,8 +37,12 @@ const CalcButton = ({
 	isEqual,
 	isDouble,
 }: CalcButtonProps) => {
-	let bgColor = colors.neutral900;
-	let textColor = colors.white;
+	const gradientColors: [string, string] = [
+		colors.gradientStart as string,
+		colors.gradientMid as string,
+	];
+
+	let textColor = colors.neutral400;
 
 	if (isEqual) textColor = colors.primary;
 	if (isDone) {
@@ -46,33 +51,32 @@ const CalcButton = ({
 
 	return (
 		<View style={[styles.buttonWrapper, isDouble && styles.buttonDouble]}>
-			{/* Светлый блик */}
 			<Shadow
 				distance={scale(4)}
-				startColor={'rgba(255, 255, 255, 0.05)'}
+				startColor={'rgba(65, 71, 85, 0.4)'}
 				offset={[-scale(2), -scale(2)]}
 				stretch
 				style={{ borderRadius: radius._12 }}
 			>
-				{/* Темная тень */}
 				<Shadow
 					distance={scale(5)}
-					startColor={'rgba(0, 0, 0, 0.6)'}
+					startColor={'rgba(0, 0, 0, 0.7)'}
 					offset={[scale(3), scale(3)]}
 					stretch
 					style={{ borderRadius: radius._12 }}
 				>
 					<TouchableOpacity
-						style={[
-							styles.buttonInner,
-							{ backgroundColor: bgColor },
-						]}
 						onPress={onPress}
-						activeOpacity={0.7}
+						activeOpacity={0.8}
+						style={{
+							borderRadius: radius._12,
+							paddingVertical: 10,
+							alignItems: 'center',
+						}}
 					>
 						{text === 'back' ? (
 							<Icons.Backspace
-								size={scale(27)}
+								size={scale(22)}
 								color={textColor}
 								weight="bold"
 							/>
@@ -131,20 +135,29 @@ const CalculatorModal = ({
 			onSwipeComplete={() => onClose(expression)}
 			swipeDirection="down"
 			style={styles.modal}
-			backdropOpacity={0.5}
+			backdropOpacity={0.6}
 			deviceHeight={SCREEN_HEIGHT}
 			statusBarTranslucent
 		>
-			<View style={styles.container}>
+			<LinearGradient
+				colors={[
+					colors.gradientStart as string,
+					colors.gradientMid as string,
+					colors.gradientEnd as string,
+				]}
+				start={{ x: 0.5, y: 0 }}
+				end={{ x: 0.5, y: 1 }}
+				style={styles.container}
+			>
 				<View style={styles.handle} />
 
 				<View style={styles.displayWrapper}>
 					<Shadow
-						distance={4}
-						startColor={'rgba(0,0,0,0.5)'}
-						offset={[1, 1]}
+						distance={8}
+						startColor={'rgba(0,0,0,0.8)'}
+						offset={[2, 2]}
 						stretch
-						style={{ borderRadius: radius._12 }}
+						containerStyle={{ borderRadius: radius._12 }}
 					>
 						<View style={styles.displayInner}>
 							<Typo
@@ -159,34 +172,29 @@ const CalculatorModal = ({
 				</View>
 
 				<View style={styles.grid}>
-					{/* Ряд 1 */}
 					<CalcButton text="7" onPress={() => handlePress('7')} />
 					<CalcButton text="8" onPress={() => handlePress('8')} />
 					<CalcButton text="9" onPress={() => handlePress('9')} />
 					<CalcButton text="÷" onPress={() => handlePress('÷')} />
 
-					{/* Ряд 2 */}
 					<CalcButton text="4" onPress={() => handlePress('4')} />
 					<CalcButton text="5" onPress={() => handlePress('5')} />
 					<CalcButton text="6" onPress={() => handlePress('6')} />
 					<CalcButton text="×" onPress={() => handlePress('×')} />
 
-					{/* Ряд 3 */}
 					<CalcButton text="1" onPress={() => handlePress('1')} />
 					<CalcButton text="2" onPress={() => handlePress('2')} />
 					<CalcButton text="3" onPress={() => handlePress('3')} />
 					<CalcButton text="-" onPress={() => handlePress('-')} />
 
-					{/* Ряд 4 */}
-					<CalcButton text="0" onPress={() => handlePress('0')} />
 					<CalcButton text="C" onPress={() => handlePress('C')} />
 					<CalcButton
 						text="back"
 						onPress={() => handlePress('back')}
 					/>
+					<CalcButton text="0" onPress={() => handlePress('0')} />
 					<CalcButton text="+" onPress={() => handlePress('+')} />
 
-					{/* Ряд 5 */}
 					<CalcButton
 						text="="
 						onPress={() => handlePress('=')}
@@ -200,7 +208,7 @@ const CalculatorModal = ({
 						isDouble
 					/>
 				</View>
-			</View>
+			</LinearGradient>
 		</Modal>
 	);
 };
@@ -208,52 +216,47 @@ const CalculatorModal = ({
 const styles = StyleSheet.create({
 	modal: { justifyContent: 'flex-end', margin: 0 },
 	container: {
-		backgroundColor: colors.neutral900,
 		borderTopLeftRadius: radius._30,
 		borderTopRightRadius: radius._30,
-		paddingBottom: verticalScale(Platform.OS === 'ios' ? 40 : 20),
+		paddingBottom: verticalScale(Platform.OS === 'ios' ? 40 : 40),
 		minHeight: SCREEN_HEIGHT * 0.55,
 	},
 	handle: {
 		width: scale(40),
 		height: scale(5),
-		backgroundColor: colors.neutral700,
+		backgroundColor: 'rgba(255, 255, 255, 0.2)',
 		borderRadius: radius._10,
 		alignSelf: 'center',
 		marginVertical: spacingX._15,
 	},
-	displayWrapper: {
-		paddingHorizontal: spacingX._15,
-		marginBottom: spacingX._20,
-	},
 	displayInner: {
-		backgroundColor: '#121212',
-		padding: spacingX._20,
+		backgroundColor: 'rgba(0, 0, 0, 0.2)',
+		paddingHorizontal: spacingX._20,
 		alignItems: 'flex-end',
 		borderRadius: radius._12,
-		height: verticalScale(65),
+		height: verticalScale(75),
 		justifyContent: 'center',
+		overflow: 'hidden',
 	},
 	grid: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		paddingHorizontal: spacingX._10,
+		paddingHorizontal: spacingX._12,
 		justifyContent: 'space-between',
+		width: '100%',
 	},
 	buttonWrapper: {
 		width: '23%',
-		marginVertical: scale(6),
-		height: verticalScale(60),
+		marginVertical: scale(8),
+		height: verticalScale(58),
 	},
 	buttonDouble: {
 		width: '48%',
 	},
-	buttonInner: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: radius._12,
-		paddingVertical: 10,
+	displayWrapper: {
+		paddingHorizontal: spacingX._15,
+		marginBottom: spacingX._20,
+		height: verticalScale(80),
 	},
 });
 

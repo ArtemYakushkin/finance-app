@@ -1,11 +1,12 @@
-import { colors, radius, spacingX } from '@/constants/theme';
+import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { WalletType } from '@/types';
 import { verticalScale } from '@/utils/styling';
+import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Router } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Typo from './Typo';
 
@@ -25,32 +26,30 @@ const WalletItem = ({
 		});
 	};
 	return (
-		<Animated.View
-			entering={FadeInDown.delay(index * 200)
-				.springify()
-				.damping(13)}
-		>
-			<TouchableOpacity style={styles.container} onPress={openWallet}>
-				<View style={styles.imageContainer}>
-					<Image
-						style={{ flex: 1 }}
-						source={item?.image}
-						contentFit="cover"
-						transition={100}
+		<Animated.View entering={FadeInDown.delay(index * 200).springify()}>
+			<Pressable onPress={openWallet}>
+				<BlurView intensity={25} tint="dark" style={styles.container}>
+					<View style={styles.imageContainer}>
+						<Image
+							style={{ flex: 1 }}
+							source={item?.image}
+							contentFit="cover"
+							transition={100}
+						/>
+					</View>
+					<View style={styles.nameContainer}>
+						<Typo size={16}>{item?.name}</Typo>
+						<Typo size={14} color={colors.neutral400}>
+							${item?.amount}
+						</Typo>
+					</View>
+					<Icons.CaretRight
+						size={verticalScale(20)}
+						weight="bold"
+						color={colors.white}
 					/>
-				</View>
-				<View style={styles.nameContainer}>
-					<Typo size={16}>{item?.name}</Typo>
-					<Typo size={14} color={colors.neutral400}>
-						${item?.amount}
-					</Typo>
-				</View>
-				<Icons.CaretRight
-					size={verticalScale(20)}
-					weight="bold"
-					color={colors.white}
-				/>
-			</TouchableOpacity>
+				</BlurView>
+			</Pressable>
 		</Animated.View>
 	);
 };
@@ -62,14 +61,16 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginBottom: verticalScale(17),
+		padding: spacingY._12,
+		backgroundColor: 'rgba(41, 46, 58, 0.07)',
+		borderRadius: radius._17,
+		overflow: 'hidden',
+		borderWidth: 1,
+		borderColor: 'rgba(255, 255, 255, 0.1)',
 	},
 	imageContainer: {
 		height: verticalScale(45),
 		width: verticalScale(45),
-		borderWidth: 1,
-		borderColor: colors.neutral600,
-		borderRadius: radius._12,
-		borderCurve: 'continuous',
 		overflow: 'hidden',
 	},
 	nameContainer: {

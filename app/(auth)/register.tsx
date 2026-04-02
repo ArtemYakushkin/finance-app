@@ -70,6 +70,9 @@ const Register = () => {
 
 					<Input
 						placeholder="Enter your email"
+						keyboardType="email-address"
+						autoCapitalize="none"
+						textContentType="emailAddress"
 						onChangeText={(value) => (emailRef.current = value)}
 						icon={
 							<Icons.At

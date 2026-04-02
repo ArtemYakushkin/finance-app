@@ -87,13 +87,13 @@ const Profile = () => {
 				<View style={styles.userInfo}>
 					<Shadow
 						distance={15}
-						startColor={'rgba(60, 60, 60, 0.25)'}
-						offset={[-6, -6]}
+						startColor={'rgba(255, 255, 255, 0.08)'}
+						offset={[-3, -3]}
 						style={{ borderRadius: 200 }}
 					>
 						<Shadow
-							distance={15}
-							startColor={'rgba(0, 0, 0, 0.9)'}
+							distance={18}
+							startColor={'rgba(5, 7, 10, 0.7)'} // Глубокий сине-черный цвет для тени
 							offset={[5, 5]}
 							style={{ borderRadius: 200 }}
 						>
@@ -122,23 +122,27 @@ const Profile = () => {
 
 				<View style={styles.accountOptionsWrapper}>
 					<Shadow
-						distance={3}
-						startColor={'#262626'}
-						offset={[-2, -2]}
+						distance={10}
+						startColor={'rgba(60, 75, 100, 0.12)'}
+						offset={[-3, -3]}
 						stretch
 						style={{ borderRadius: radius._20 }}
 					>
 						<Shadow
-							distance={3}
-							startColor={'#101010'}
-							offset={[3, 3]}
+							distance={12}
+							startColor={'rgba(0, 0, 0, 0.8)'}
+							offset={[5, 5]}
 							stretch
 							style={{ borderRadius: radius._20 }}
 						>
 							<View
 								style={[
 									styles.optionsContent,
-									{ backgroundColor: bgColor },
+									{
+										backgroundColor: '#171921',
+										borderColor:
+											'rgba(255, 255, 255, 0.03)',
+									},
 								]}
 							>
 								{accountOptions.map((item, index) => {
@@ -148,9 +152,7 @@ const Profile = () => {
 										<Animated.View
 											entering={FadeInDown.delay(
 												index * 50,
-											)
-												.springify()
-												.damping(14)}
+											).springify()}
 											key={index}
 										>
 											<TouchableOpacity

@@ -6,6 +6,7 @@ import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
 import { WalletType } from '@/types';
 import { verticalScale } from '@/utils/styling';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
@@ -46,7 +47,17 @@ const Wallet = () => {
 					</View>
 				</View>
 
-				<View style={styles.wallets}>
+				<LinearGradient
+					colors={[
+						colors.gradientStart,
+						colors.gradientMid,
+						colors.gradientEnd,
+					]}
+					start={{ x: 0.5, y: 0 }}
+					end={{ x: 0.5, y: 1 }}
+					locations={[0, 0.45, 1]}
+					style={styles.wallets}
+				>
 					<View style={styles.flexRow}>
 						<Typo size={20} fontWeight={'500'}>
 							My Wallets
@@ -62,7 +73,6 @@ const Wallet = () => {
 						</TouchableOpacity>
 					</View>
 
-					{/* {loading && <Loading />} */}
 					<FlatList
 						data={wallets}
 						renderItem={({ item, index }) => (
@@ -74,7 +84,7 @@ const Wallet = () => {
 						)}
 						contentContainerStyle={styles.listStyle}
 					/>
-				</View>
+				</LinearGradient>
 			</View>
 		</ScreenWrapper>
 	);
@@ -89,7 +99,6 @@ const styles = StyleSheet.create({
 	},
 	balanceView: {
 		height: verticalScale(160),
-		backgroundColor: colors.black,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
@@ -101,11 +110,12 @@ const styles = StyleSheet.create({
 	},
 	wallets: {
 		flex: 1,
-		backgroundColor: colors.neutral900,
 		borderTopRightRadius: radius._30,
 		borderTopLeftRadius: radius._30,
 		padding: spacingX._20,
 		paddingTop: spacingX._25,
+		borderTopWidth: 2,
+		borderTopColor: colors.gradientMid,
 	},
 	listStyle: {
 		paddingVertical: spacingY._25,

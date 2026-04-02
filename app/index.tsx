@@ -1,25 +1,18 @@
+import ScreenWrapper from '@/components/ScreenWrapper';
 import { colors } from '@/constants/theme';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
 const index = () => {
-	//   const router = useRouter();
-
-	//   useEffect(() => {
-	//     setTimeout(() => {
-	//       router.push("/(auth)/welcome");
-	//     }, 2000);
-	//   }, []);
-
 	return (
-		<View style={styles.container}>
-			<Image
-				style={styles.logo}
-				resizeMode="contain"
-				source={require('../assets/images/logo.png')}
-			/>
-		</View>
+		<ScreenWrapper>
+			<View style={styles.container}>
+				<Image
+					style={styles.logo}
+					resizeMode="contain"
+					source={require('../assets/images/logo.png')}
+				/>
+			</View>
+		</ScreenWrapper>
 	);
 };
 

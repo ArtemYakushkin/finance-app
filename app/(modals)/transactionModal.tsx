@@ -27,6 +27,7 @@ import * as Icons from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
 import {
 	Alert,
+	KeyboardAvoidingView,
 	Platform,
 	Pressable,
 	ScrollView,
@@ -199,402 +200,432 @@ const TransactionModal = () => {
 
 	return (
 		<ModalWrapper>
-			<View style={styles.container}>
-				<Header
-					title={
-						oldTransaction?.id
-							? 'Update Transaction'
-							: 'New Transaction'
-					}
-					leftIcon={<BackButton />}
-					style={{ marginBottom: spacingY._10 }}
-				/>
-				<ScrollView
-					contentContainerStyle={styles.form}
-					showsVerticalScrollIndicator={false}
-				>
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
-							Type
-						</Typo>
-						<View style={styles.typeContainer}>
-							{transactionTypes.map((item) => {
-								const isActive =
-									transaction.type === item.value;
-								const activeTextColor =
-									item.value === 'income'
-										? colors.primary
-										: colors.rose;
-
-								return (
-									<Button
-										key={item.value}
-										onPress={() =>
-											setTransaction({
-												...transaction,
-												type: item.value,
-											})
-										}
-										style={{ flex: 1 }}
-									>
-										<Typo
-											size={16}
-											fontWeight={
-												isActive ? '700' : '500'
-											}
-											color={
-												isActive
-													? activeTextColor
-													: colors.neutral400
-											}
-										>
-											{item.label}
-										</Typo>
-									</Button>
-								);
-							})}
-						</View>
-					</View>
-
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
-							Wallet
-						</Typo>
-						<View style={styles.dropdownShadowHolder}>
-							<Shadow
-								distance={6}
-								startColor={lightShadow}
-								offset={[-1, -1]}
-								stretch
-								containerStyle={{ borderRadius: btnRadius }}
-								style={[
-									styles.shadowWrapper,
-									{ borderRadius: btnRadius },
-								]}
-							>
-								<Shadow
-									distance={8}
-									startColor={darkShadow}
-									offset={[3, 3]}
-									stretch
-									style={styles.shadowWrapper}
-								>
-									<Dropdown
-										style={styles.dropdownContainer}
-										activeColor={colors.gradientStart}
-										placeholderStyle={
-											styles.dropdownPlaceholder
-										}
-										selectedTextStyle={
-											styles.dropdownSelectedText
-										}
-										iconStyle={styles.dropdownIcon}
-										data={wallets.map((wallet) => ({
-											label: `${wallet?.name} ($${wallet?.amount})`,
-											value: wallet?.id,
-										}))}
-										maxHeight={300}
-										labelField="label"
-										valueField="value"
-										itemTextStyle={styles.dropdownItemText}
-										itemContainerStyle={
-											styles.dropdownItemContainer
-										}
-										containerStyle={
-											styles.dropdownListContainer
-										}
-										placeholder={'Select wallet'}
-										value={transaction.walletId}
-										onChange={(item) => {
-											setTransaction({
-												...transaction,
-												walletId: item.value || '',
-											});
-										}}
-									/>
-								</Shadow>
-							</Shadow>
-						</View>
-					</View>
-
-					{transaction.type === 'expense' && (
+			<KeyboardAvoidingView
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+				style={{ flex: 1 }}
+			>
+				<View style={styles.container}>
+					<Header
+						title={
+							oldTransaction?.id
+								? 'Update Transaction'
+								: 'New Transaction'
+						}
+						leftIcon={<BackButton />}
+						style={{ marginBottom: spacingY._10 }}
+					/>
+					<ScrollView
+						contentContainerStyle={styles.form}
+						showsVerticalScrollIndicator={false}
+						keyboardShouldPersistTaps="handled"
+					>
 						<View style={styles.inputContainer}>
 							<Typo color={colors.neutral200} size={16}>
-								Category Group
+								Type
 							</Typo>
-							<View
-								style={[
-									styles.typeContainer,
-									{ marginBottom: 20 },
-								]}
-							>
-								{categoryGroups.map((group) => {
+							<View style={styles.typeContainer}>
+								{transactionTypes.map((item) => {
 									const isActive =
-										selectedGroup === group.value;
+										transaction.type === item.value;
+									const activeTextColor =
+										item.value === 'income'
+											? colors.primary
+											: colors.rose;
+
 									return (
 										<Button
-											key={group.value}
-											onPress={() => {
-												setSelectedGroup(group.value);
+											key={item.value}
+											onPress={() =>
 												setTransaction({
 													...transaction,
-													category: '',
-												}); // сброс подкатегории при смене группы
-											}}
-											style={{
-												flex: 1,
-											}}
+													type: item.value,
+												})
+											}
+											style={{ flex: 1 }}
 										>
 											<Typo
-												size={14}
+												size={16}
 												fontWeight={
 													isActive ? '700' : '500'
 												}
 												color={
 													isActive
-														? group.color
+														? activeTextColor
 														: colors.neutral400
 												}
 											>
-												{group.label}
+												{item.label}
 											</Typo>
 										</Button>
 									);
 								})}
 							</View>
-
-							{selectedGroup && (
-								<View style={styles.inputContainer}>
-									<Typo color={colors.neutral200} size={16}>
-										Subcategory
-									</Typo>
-									<View style={styles.dropdownShadowHolder}>
-										<Shadow
-											distance={6}
-											startColor={lightShadow}
-											offset={[-1, -1]}
-											stretch
-											containerStyle={{
-												borderRadius: btnRadius,
-											}}
-											style={[
-												styles.shadowWrapper,
-												{ borderRadius: btnRadius },
-											]}
-										>
-											<Shadow
-												distance={8}
-												startColor={darkShadow}
-												offset={[3, 3]}
-												stretch
-												style={styles.shadowWrapper}
-											>
-												<Dropdown
-													style={
-														styles.dropdownContainer
-													}
-													activeColor={
-														colors.gradientStart
-													}
-													placeholderStyle={
-														styles.dropdownPlaceholder
-													}
-													selectedTextStyle={
-														styles.dropdownSelectedText
-													}
-													iconStyle={
-														styles.dropdownIcon
-													}
-													data={
-														expenseCategories[
-															selectedGroup as keyof typeof expenseCategories
-														]
-													}
-													maxHeight={300}
-													labelField="label"
-													valueField="value"
-													itemTextStyle={
-														styles.dropdownItemText
-													}
-													itemContainerStyle={
-														styles.dropdownItemContainer
-													}
-													containerStyle={
-														styles.dropdownListContainer
-													}
-													placeholder={
-														'Select subcategory'
-													}
-													value={transaction.category}
-													onChange={(item) => {
-														setTransaction({
-															...transaction,
-															category:
-																item.value,
-														});
-													}}
-												/>
-											</Shadow>
-										</Shadow>
-									</View>
-								</View>
-							)}
 						</View>
-					)}
 
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
-							Date
-						</Typo>
-
-						{!showDatePicker && (
-							<View
-								style={[
-									styles.baseBackground,
-									{ borderRadius: btnRadius },
-								]}
-							>
+						<View style={styles.inputContainer}>
+							<Typo color={colors.neutral200} size={16}>
+								Wallet
+							</Typo>
+							<View style={styles.dropdownShadowHolder}>
 								<Shadow
-									distance={10}
-									startColor={'rgba(0, 0, 0, 0.8)'}
-									offset={[3, 3]}
+									distance={6}
+									startColor={lightShadow}
+									offset={[-1, -1]}
 									stretch
-									style={styles.fullWidth}
+									containerStyle={{ borderRadius: btnRadius }}
+									style={[
+										styles.shadowWrapper,
+										{ borderRadius: btnRadius },
+									]}
 								>
 									<Shadow
 										distance={8}
-										startColor={'rgba(65, 71, 85, 0.4)'}
-										offset={[-3, -3]}
+										startColor={darkShadow}
+										offset={[3, 3]}
 										stretch
-										style={styles.fullWidth}
+										style={styles.shadowWrapper}
 									>
-										<LinearGradient
-											colors={concavedGradientColors}
-											start={{ x: 0.5, y: 0 }}
-											end={{ x: 0.5, y: 1 }}
-											style={[
-												styles.containerDate,
-												{ borderRadius: btnRadius },
-											]}
-										>
-											<Pressable
-												style={styles.dateInput}
-												onPress={() =>
-													setShowDatePicker(true)
-												}
-											>
-												<Typo size={14}>
-													{(
-														transaction.date as Date
-													).toLocaleDateString()}
-												</Typo>
-											</Pressable>
-										</LinearGradient>
+										<Dropdown
+											style={styles.dropdownContainer}
+											activeColor={colors.gradientStart}
+											placeholderStyle={
+												styles.dropdownPlaceholder
+											}
+											selectedTextStyle={
+												styles.dropdownSelectedText
+											}
+											iconStyle={styles.dropdownIcon}
+											data={wallets.map((wallet) => ({
+												label: `${wallet?.name} ($${wallet?.amount})`,
+												value: wallet?.id,
+											}))}
+											maxHeight={300}
+											labelField="label"
+											valueField="value"
+											itemTextStyle={
+												styles.dropdownItemText
+											}
+											itemContainerStyle={
+												styles.dropdownItemContainer
+											}
+											containerStyle={
+												styles.dropdownListContainer
+											}
+											placeholder={'Select wallet'}
+											value={transaction.walletId}
+											onChange={(item) => {
+												setTransaction({
+													...transaction,
+													walletId: item.value || '',
+												});
+											}}
+										/>
 									</Shadow>
 								</Shadow>
 							</View>
-						)}
+						</View>
 
-						{showDatePicker && (
-							<View
-								style={
-									Platform.OS == 'ios' && styles.iosDatePicker
-								}
-							>
-								<DateTimePicker
-									themeVariant="dark"
-									value={transaction.date as Date}
-									textColor={colors.white}
-									mode="date"
-									display="spinner"
-									onChange={onDateChange}
-								/>
-								{Platform.OS == 'ios' && (
-									<TouchableOpacity
-										onPress={() => setShowDatePicker(false)}
-									>
+						{transaction.type === 'expense' && (
+							<View style={styles.inputContainer}>
+								<Typo color={colors.neutral200} size={16}>
+									Category Group
+								</Typo>
+								<View
+									style={[
+										styles.typeContainer,
+										{ marginBottom: 20 },
+									]}
+								>
+									{categoryGroups.map((group) => {
+										const isActive =
+											selectedGroup === group.value;
+										return (
+											<Button
+												key={group.value}
+												onPress={() => {
+													setSelectedGroup(
+														group.value,
+													);
+													setTransaction({
+														...transaction,
+														category: '',
+													}); // сброс подкатегории при смене группы
+												}}
+												style={{
+													flex: 1,
+												}}
+											>
+												<Typo
+													size={14}
+													fontWeight={
+														isActive ? '700' : '500'
+													}
+													color={
+														isActive
+															? group.color
+															: colors.neutral400
+													}
+												>
+													{group.label}
+												</Typo>
+											</Button>
+										);
+									})}
+								</View>
+
+								{selectedGroup && (
+									<View style={styles.inputContainer}>
 										<Typo
-											size={15}
-											fontWeight={500}
-											color={colors.primary}
+											color={colors.neutral200}
+											size={16}
 										>
-											Ok
+											Subcategory
 										</Typo>
-									</TouchableOpacity>
+										<View
+											style={styles.dropdownShadowHolder}
+										>
+											<Shadow
+												distance={6}
+												startColor={lightShadow}
+												offset={[-1, -1]}
+												stretch
+												containerStyle={{
+													borderRadius: btnRadius,
+												}}
+												style={[
+													styles.shadowWrapper,
+													{ borderRadius: btnRadius },
+												]}
+											>
+												<Shadow
+													distance={8}
+													startColor={darkShadow}
+													offset={[3, 3]}
+													stretch
+													style={styles.shadowWrapper}
+												>
+													<Dropdown
+														style={
+															styles.dropdownContainer
+														}
+														activeColor={
+															colors.gradientStart
+														}
+														placeholderStyle={
+															styles.dropdownPlaceholder
+														}
+														selectedTextStyle={
+															styles.dropdownSelectedText
+														}
+														iconStyle={
+															styles.dropdownIcon
+														}
+														data={
+															expenseCategories[
+																selectedGroup as keyof typeof expenseCategories
+															]
+														}
+														maxHeight={300}
+														labelField="label"
+														valueField="value"
+														itemTextStyle={
+															styles.dropdownItemText
+														}
+														itemContainerStyle={
+															styles.dropdownItemContainer
+														}
+														containerStyle={
+															styles.dropdownListContainer
+														}
+														placeholder={
+															'Select subcategory'
+														}
+														value={
+															transaction.category
+														}
+														onChange={(item) => {
+															setTransaction({
+																...transaction,
+																category:
+																	item.value,
+															});
+														}}
+													/>
+												</Shadow>
+											</Shadow>
+										</View>
+									</View>
 								)}
 							</View>
 						)}
-					</View>
 
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
-							Amount
-						</Typo>
-						<Pressable onPress={() => setShowCalculator(true)}>
-							<View pointerEvents="none">
-								<Input
-									placeholder="0"
-									value={transaction.amount?.toString()}
-									editable={false}
-								/>
-							</View>
-						</Pressable>
-					</View>
+						<View style={styles.inputContainer}>
+							<Typo color={colors.neutral200} size={16}>
+								Date
+							</Typo>
 
-					<View style={[styles.inputContainer, { marginBottom: 30 }]}>
-						<Typo color={colors.neutral200} size={16}>
-							Description
-						</Typo>
-						<Input
-							value={transaction.description}
-							onChangeText={(value) =>
-								setTransaction({
-									...transaction,
-									description: value,
-								})
-							}
-						/>
-					</View>
-				</ScrollView>
-			</View>
+							{!showDatePicker && (
+								<View
+									style={[
+										styles.baseBackground,
+										{ borderRadius: btnRadius },
+									]}
+								>
+									<Shadow
+										distance={10}
+										startColor={'rgba(0, 0, 0, 0.8)'}
+										offset={[3, 3]}
+										stretch
+										style={styles.fullWidth}
+									>
+										<Shadow
+											distance={8}
+											startColor={'rgba(65, 71, 85, 0.4)'}
+											offset={[-3, -3]}
+											stretch
+											style={styles.fullWidth}
+										>
+											<LinearGradient
+												colors={concavedGradientColors}
+												start={{ x: 0.5, y: 0 }}
+												end={{ x: 0.5, y: 1 }}
+												style={[
+													styles.containerDate,
+													{ borderRadius: btnRadius },
+												]}
+											>
+												<Pressable
+													style={styles.dateInput}
+													onPress={() =>
+														setShowDatePicker(true)
+													}
+												>
+													<Typo size={14}>
+														{(
+															transaction.date as Date
+														).toLocaleDateString()}
+													</Typo>
+												</Pressable>
+											</LinearGradient>
+										</Shadow>
+									</Shadow>
+								</View>
+							)}
 
-			<View style={styles.footer}>
-				{oldTransaction?.id && (
+							{showDatePicker && (
+								<View
+									style={
+										Platform.OS == 'ios' &&
+										styles.iosDatePicker
+									}
+								>
+									<DateTimePicker
+										themeVariant="dark"
+										value={transaction.date as Date}
+										textColor={colors.white}
+										mode="date"
+										display="spinner"
+										onChange={onDateChange}
+									/>
+									{Platform.OS == 'ios' && (
+										<TouchableOpacity
+											onPress={() =>
+												setShowDatePicker(false)
+											}
+										>
+											<Typo
+												size={15}
+												fontWeight={500}
+												color={colors.primary}
+											>
+												Ok
+											</Typo>
+										</TouchableOpacity>
+									)}
+								</View>
+							)}
+						</View>
+
+						<View style={styles.inputContainer}>
+							<Typo color={colors.neutral200} size={16}>
+								Amount
+							</Typo>
+							<Pressable onPress={() => setShowCalculator(true)}>
+								<View pointerEvents="none">
+									<Input
+										placeholder="0"
+										value={transaction.amount?.toString()}
+										editable={false}
+									/>
+								</View>
+							</Pressable>
+						</View>
+
+						<View
+							style={[
+								styles.inputContainer,
+								{ marginBottom: 30 },
+							]}
+						>
+							<Typo color={colors.neutral200} size={16}>
+								Description
+							</Typo>
+							<Input
+								value={transaction.description}
+								onChangeText={(value) =>
+									setTransaction({
+										...transaction,
+										description: value,
+									})
+								}
+							/>
+						</View>
+					</ScrollView>
+				</View>
+
+				<View style={styles.footer}>
+					{oldTransaction?.id && (
+						<Button
+							style={{ marginRight: 5 }}
+							onPress={showDeleteAlert}
+						>
+							<Icons.Trash
+								color={colors.rose}
+								size={verticalScale(24)}
+								weight="bold"
+							/>
+						</Button>
+					)}
 					<Button
-						style={{ marginRight: 5 }}
-						onPress={showDeleteAlert}
+						onPress={onSubmit}
+						loading={loading}
+						style={{ flex: 1 }}
 					>
-						<Icons.Trash
-							color={colors.rose}
-							size={verticalScale(24)}
-							weight="bold"
-						/>
+						<Typo
+							fontWeight={'700'}
+							color={colors.primaryLight}
+							size={21}
+						>
+							{oldTransaction?.id ? 'Update' : 'Submit'}
+						</Typo>
 					</Button>
-				)}
-				<Button
-					onPress={onSubmit}
-					loading={loading}
-					style={{ flex: 1 }}
-				>
-					<Typo
-						fontWeight={'700'}
-						color={colors.primaryLight}
-						size={21}
-					>
-						{oldTransaction?.id ? 'Update' : 'Submit'}
-					</Typo>
-				</Button>
-			</View>
+				</View>
 
-			<CalculatorModal
-				isVisible={showCalculator}
-				initialValue={transaction.amount?.toString() || ''}
-				onClose={(val) => {
-					const numericValue = Number(val.replace(/[^0-9.]/g, ''));
-					setTransaction({ ...transaction, amount: numericValue });
-					setShowCalculator(false);
-				}}
-			/>
+				<CalculatorModal
+					isVisible={showCalculator}
+					initialValue={transaction.amount?.toString() || ''}
+					onClose={(val) => {
+						const numericValue = Number(
+							val.replace(/[^0-9.]/g, ''),
+						);
+						setTransaction({
+							...transaction,
+							amount: numericValue,
+						});
+						setShowCalculator(false);
+					}}
+				/>
+			</KeyboardAvoidingView>
 		</ModalWrapper>
 	);
 };

@@ -1,4 +1,4 @@
-import { colors } from '@/constants/theme'; // Теперь colors используется!
+import { colors } from '@/constants/theme';
 import { ScreenWrapperProps } from '@/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
