@@ -20,7 +20,7 @@ const welcome = () => {
 						onPress={() => router.push('/(auth)/login')}
 					>
 						<Typo fontWeight={'500'} color={colors.primaryLight}>
-							Sign in
+							Увійти
 						</Typo>
 					</TouchableOpacity>
 
@@ -34,10 +34,10 @@ const welcome = () => {
 				<View style={styles.footer}>
 					<View style={{ alignItems: 'center' }}>
 						<Typo size={30} fontWeight={'800'}>
-							Always take control
+							Фінанси
 						</Typo>
 						<Typo size={30} fontWeight={'800'}>
-							of your finances
+							під контролем
 						</Typo>
 					</View>
 
@@ -48,7 +48,7 @@ const welcome = () => {
 								color={colors.primaryLight}
 								fontWeight={'700'}
 							>
-								Get started
+								Почати
 							</Typo>
 						</Button>
 					</View>

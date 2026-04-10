@@ -1,4 +1,8 @@
-import { expenseCategories, incomeCategory } from '@/constants/data';
+import {
+	categoryGroups,
+	expenseCategories,
+	incomeCategory,
+} from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import {
 	TransactionItemProps,
@@ -84,32 +88,76 @@ const TransactionItem = ({
 	index,
 	handleClick,
 }: TransactionItemProps) => {
+	// const getCategoryInfo = () => {
+	// 	if (item?.type === 'income')
+	// 		return { groupLabel: 'Дохід', data: incomeCategory };
+
+	// 	const groupNames: Record<string, string> = {
+	// 		needs: 'База',
+	// 		desires: 'Хочу',
+	// 		saving: 'Резерв',
+	// 	};
+
+	// 	for (const group in expenseCategories) {
+	// 		const found = expenseCategories[
+	// 			group as keyof typeof expenseCategories
+	// 		].find((cat) => cat.value === item.category);
+	// 		if (found) {
+	// 			return {
+	// 				groupLabel: groupNames[group] || group,
+	// 				data: found,
+	// 			};
+	// 		}
+	// 	}
+
+	// 	return {
+	// 		groupLabel: 'Інше',
+	// 		data: {
+	// 			label: item.category || 'Невідомо',
+	// 			icon: null,
+	// 			bgColor: colors.neutral500,
+	// 		},
+	// 	};
+	// };
 	const getCategoryInfo = () => {
 		if (item?.type === 'income')
-			return { groupLabel: 'Income', data: incomeCategory };
+			return { groupLabel: 'Дохід', data: incomeCategory };
 
-		const groupNames: Record<string, string> = {
-			needs: 'Needs',
-			desires: 'Desires',
-			saving: 'Saving',
-		};
+		// 1. Находим, к какой группе относится подкатегория транзакции
+		let groupKey = '';
+		let subCategory: any = null;
 
-		for (const group in expenseCategories) {
+		for (const key in expenseCategories) {
 			const found = expenseCategories[
-				group as keyof typeof expenseCategories
+				key as keyof typeof expenseCategories
 			].find((cat) => cat.value === item.category);
+
 			if (found) {
-				return {
-					groupLabel: groupNames[group] || group,
-					data: found,
-				};
+				groupKey = key;
+				subCategory = found;
+				break;
 			}
 		}
 
+		// 2. Находим данные основной группы (иконку и основной цвет)
+		const mainGroup = categoryGroups.find((g) => g.value === groupKey);
+
+		if (mainGroup) {
+			return {
+				groupLabel: mainGroup.label,
+				data: {
+					label: subCategory?.label || item.category,
+					icon: mainGroup.icon, // БЕРЕМ ИКОНКУ ГРУППЫ (HouseLine, Star, PiggyBank)
+					bgColor: mainGroup.color, // БЕРЕМ ЦВЕТ ГРУППЫ
+				},
+			};
+		}
+
+		// Фоллбек, если ничего не найдено
 		return {
-			groupLabel: 'Other',
+			groupLabel: 'Інше',
 			data: {
-				label: item.category || 'Unknown',
+				label: item.category || 'Невідомо',
 				icon: null,
 				bgColor: colors.neutral500,
 			},
@@ -121,7 +169,7 @@ const TransactionItem = ({
 
 	const date = (item?.date as Timestamp)
 		?.toDate()
-		?.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+		?.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
 
 	return (
 		<View style={{ marginBottom: spacingY._12 }}>
@@ -166,7 +214,7 @@ const TransactionItem = ({
 									: colors.rose
 							}
 						>
-							{`${item?.type == 'income' ? '+ $' : '- $'}${item?.amount}`}
+							{`${item?.type == 'income' ? '+₴' : '-₴'} ${item?.amount}`}
 						</Typo>
 						<Typo size={13} color={colors.neutral400}>
 							{date}

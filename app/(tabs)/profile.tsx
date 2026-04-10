@@ -23,25 +23,25 @@ const Profile = () => {
 
 	const accountOptions: accountOptionType[] = [
 		{
-			title: 'Edit Profile',
+			title: 'Редагувати профіль',
 			icon: <Icons.User size={24} color={colors.white} weight="fill" />,
 			routeName: '/(modals)/profileModal',
 			bgColor: '#6366f1',
 		},
 		{
-			title: 'Settings',
+			title: 'Налаштування',
 			icon: (
 				<Icons.GearSix size={24} color={colors.white} weight="fill" />
 			),
 			bgColor: '#059669',
 		},
 		{
-			title: 'Privacy Policy',
+			title: 'Конфіденційність',
 			icon: <Icons.Lock size={24} color={colors.white} weight="fill" />,
 			bgColor: colors.neutral600,
 		},
 		{
-			title: 'Logout',
+			title: 'Вийти',
 			icon: <Icons.Power size={24} color={colors.white} weight="fill" />,
 			bgColor: '#e11d48',
 		},
@@ -52,14 +52,14 @@ const Profile = () => {
 	};
 
 	const showLogoutAlert = () => {
-		Alert.alert('Confirm', 'Are you sure you want to logout?', [
+		Alert.alert('Підтвердити', 'Ви впевнені, що хочете вийти?', [
 			{
-				text: 'Cancel',
+				text: 'Скасувати',
 				onPress: () => console.log('cancel logout'),
 				style: 'cancel',
 			},
 			{
-				text: 'Logout',
+				text: 'Вийти',
 				onPress: () => handleLogout(),
 				style: 'destructive',
 			},
@@ -67,7 +67,7 @@ const Profile = () => {
 	};
 
 	const handlePress = (item: accountOptionType) => {
-		if (item.title == 'Logout') {
+		if (item.title == 'Вийти') {
 			showLogoutAlert();
 		}
 
@@ -80,7 +80,7 @@ const Profile = () => {
 		<ScreenWrapper>
 			<View style={styles.container}>
 				<Header
-					title="Profile"
+					title="Профіль"
 					style={{ marginVertical: spacingY._10 }}
 				/>
 

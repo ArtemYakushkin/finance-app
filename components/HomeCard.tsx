@@ -53,7 +53,7 @@ const HomeCard = () => {
 							fontWeight={500}
 							color={colors.neutral300}
 						>
-							Total Balance
+							Загальний баланс
 						</Typo>
 
 						<Icons.DotsThreeOutline
@@ -63,7 +63,7 @@ const HomeCard = () => {
 						/>
 					</View>
 					<Typo size={30} fontWeight={'bold'} color={colors.white}>
-						${' '}
+						₴{' '}
 						{walletLoading
 							? '----'
 							: getTotals()?.balance?.toFixed(2)}
@@ -85,7 +85,7 @@ const HomeCard = () => {
 								fontWeight={500}
 								color={colors.neutral300}
 							>
-								Income
+								Дохід
 							</Typo>
 						</View>
 						<View style={{ alignSelf: 'center' }}>
@@ -94,7 +94,7 @@ const HomeCard = () => {
 								fontWeight={600}
 								color={colors.green}
 							>
-								${' '}
+								₴{' '}
 								{walletLoading
 									? '----'
 									: getTotals()?.income?.toFixed(2)}
@@ -116,7 +116,7 @@ const HomeCard = () => {
 								fontWeight={500}
 								color={colors.neutral300}
 							>
-								Expense
+								Витрати
 							</Typo>
 						</View>
 						<View style={{ alignSelf: 'center' }}>
@@ -125,7 +125,7 @@ const HomeCard = () => {
 								fontWeight={600}
 								color={colors.rose}
 							>
-								${' '}
+								₴{' '}
 								{walletLoading
 									? '----'
 									: getTotals()?.expenses?.toFixed(2)}

@@ -3,33 +3,38 @@ import { CategoryType } from '@/types';
 import * as Icons from 'phosphor-react-native';
 
 export const categoryGroups = [
-	{ label: 'Needs', value: 'needs', color: '#4a90e2' },
-	{ label: 'Desires', value: 'desires', color: '#ef4444' },
-	{ label: 'Saving', value: 'saving', color: '#a3e635' },
+	{ label: 'База', value: 'needs', color: '#4a90e2', icon: Icons.HouseLine },
+	{ label: 'Хочу', value: 'desires', color: '#ef4444', icon: Icons.Star },
+	{
+		label: 'Резерв',
+		value: 'saving',
+		color: '#a3e635',
+		icon: Icons.PiggyBank,
+	},
 ];
 
 export const expenseCategories = {
 	needs: [
 		{
-			label: 'House',
+			label: 'Житло',
 			value: 'house',
 			icon: Icons.House,
 			bgColor: '#4B5563',
 		},
 		{
-			label: 'Products',
+			label: 'Продукти',
 			value: 'products',
 			icon: Icons.ShoppingCart,
 			bgColor: '#075985',
 		},
 		{
-			label: 'Medicine',
+			label: 'Медицина',
 			value: 'medicine',
 			icon: Icons.FirstAid,
 			bgColor: '#e11d48',
 		},
 		{
-			label: 'Transport',
+			label: 'Транспорт',
 			value: 'transport',
 			icon: Icons.Car,
 			bgColor: '#b45309',
@@ -37,19 +42,19 @@ export const expenseCategories = {
 	],
 	desires: [
 		{
-			label: 'Cloth',
+			label: 'Одяг',
 			value: 'cloth',
 			icon: Icons.TShirt,
 			bgColor: '#7c3aed',
 		},
 		{
-			label: 'Entertainment',
+			label: 'Розваги',
 			value: 'entertainment',
 			icon: Icons.FilmStrip,
 			bgColor: '#0f766e',
 		},
 		{
-			label: 'Subscriptions',
+			label: 'Підписки',
 			value: 'subscriptions',
 			icon: Icons.Rss,
 			bgColor: '#a21caf',
@@ -57,19 +62,19 @@ export const expenseCategories = {
 	],
 	saving: [
 		{
-			label: 'Deposit',
+			label: 'Депозит',
 			value: 'deposit',
 			icon: Icons.Bank,
 			bgColor: '#065F46',
 		},
 		{
-			label: 'Insurance',
+			label: 'Страхування',
 			value: 'insurance',
 			icon: Icons.ShieldCheck,
 			bgColor: '#404040',
 		},
 		{
-			label: 'Credit',
+			label: 'Кредит',
 			value: 'credit',
 			icon: Icons.CreditCard,
 			bgColor: '#525252',
@@ -78,13 +83,13 @@ export const expenseCategories = {
 };
 
 export const incomeCategory: CategoryType = {
-	label: 'Income',
+	label: 'Дохід',
 	value: 'income',
 	icon: Icons.CurrencyDollarSimple,
-	bgColor: '#16a34a', // Dark
+	bgColor: '#16a34a',
 };
 
 export const transactionTypes = [
-	{ label: 'Expense', value: 'expense' },
-	{ label: 'Income', value: 'income' },
+	{ label: 'Витрати', value: 'expense' },
+	{ label: 'Дохід', value: 'income' },
 ];

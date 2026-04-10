@@ -1,6 +1,8 @@
 import { firestore } from '@/config/firebase';
+import { colors } from '@/constants/theme';
 import { ResponseType, TransactionType, WalletType } from '@/types';
-import { getLast7Days } from '@/utils/common';
+import { getLast12Months, getLast7Days, getYearsRange } from '@/utils/common';
+import { scale } from '@/utils/styling';
 import {
 	collection,
 	deleteDoc,
@@ -22,11 +24,10 @@ export const createOrUpdateTransaction = async (
 		const { id, type, walletId, amount } = transactionData;
 
 		if (!amount || Number(amount) <= 0 || !walletId || !type) {
-			return { success: false, msg: 'Invalid transaction data!' };
+			return { success: false, msg: 'Недійсні дані транзакції!' };
 		}
 
 		if (id) {
-			// РЕДАКТИРОВАНИЕ СУЩЕСТВУЮЩЕЙ ТРАНЗАКЦИИ
 			const oldTransactionSnapshot = await getDoc(
 				doc(firestore, 'transactions', id),
 			);
@@ -48,7 +49,6 @@ export const createOrUpdateTransaction = async (
 				if (!res.success) return res;
 			}
 		} else {
-			// СОЗДАНИЕ НОВОЙ ТРАНЗАКЦИИ
 			const res = await updateWalletForNewTransaction(
 				walletId!,
 				Number(amount),
@@ -83,7 +83,7 @@ export const updateWalletForNewTransaction = async (
 		const walletSnapshot = await getDoc(walletRef);
 
 		if (!walletSnapshot.exists()) {
-			return { success: false, msg: 'Wallet not found' };
+			return { success: false, msg: 'Гаманець не знайдено' };
 		}
 
 		const walletData = walletSnapshot.data() as WalletType;
@@ -91,7 +91,7 @@ export const updateWalletForNewTransaction = async (
 		if (type === 'expense' && (walletData.amount || 0) - amount < 0) {
 			return {
 				success: false,
-				msg: "Selected wallet doesn't have enough balance",
+				msg: 'Вибраний гаманець не має достатнього балансу',
 			};
 		}
 
@@ -122,7 +122,6 @@ const revertAndUpdateWallets = async (
 	newWalletId: string,
 ) => {
 	try {
-		// --- 1. ОТКАТ СТАРОЙ ТРАНЗАКЦИИ ---
 		const originalWalletRef = doc(
 			firestore,
 			'wallets',
@@ -134,7 +133,6 @@ const revertAndUpdateWallets = async (
 		const revertType =
 			oldTransaction.type === 'income' ? 'totalIncome' : 'totalExpenses';
 
-		// Возвращаем баланс и вычитаем сумму из общих итогов (totalIncome/totalExpenses)
 		const revertedBalance =
 			oldTransaction.type === 'income'
 				? Number(originalWallet.amount || 0) -
@@ -151,7 +149,6 @@ const revertAndUpdateWallets = async (
 			[revertType]: revertedTotal,
 		});
 
-		// --- 2. ПРИМЕНЕНИЕ НОВОЙ ТРАНЗАКЦИИ ---
 		const newWalletRef = doc(firestore, 'wallets', newWalletId);
 		const newWalletSnapshot = await getDoc(newWalletRef);
 		const newWallet = newWalletSnapshot.data() as WalletType;
@@ -162,7 +159,7 @@ const revertAndUpdateWallets = async (
 		) {
 			return {
 				success: false,
-				msg: "The selected wallet doesn't have enough balance",
+				msg: 'Вибраний гаманець не має достатнього балансу',
 			};
 		}
 
@@ -194,7 +191,6 @@ export const deleteTransaction = async (
 	walletId: string,
 ) => {
 	try {
-		// 1. Получаем данные удаляемой транзакции
 		const transactionRef = doc(firestore, 'transactions', transactionId);
 		const transactionSnapshot = await getDoc(transactionRef);
 
@@ -206,45 +202,38 @@ export const deleteTransaction = async (
 		const transactionType = transactionData.type;
 		const transactionAmount = Number(transactionData.amount);
 
-		// 2. Получаем данные кошелька
 		const walletRef = doc(firestore, 'wallets', walletId);
 		const walletSnapshot = await getDoc(walletRef);
 
 		if (!walletSnapshot.exists()) {
-			return { success: false, msg: 'Wallet not found' };
+			return { success: false, msg: 'Гаманець не знайдено' };
 		}
 
 		const walletData = walletSnapshot.data() as WalletType;
 
-		// 3. РАССЧИТЫВАЕМ НОВЫЕ ЗНАЧЕНИЯ
 		const updateType =
 			transactionType === 'income' ? 'totalIncome' : 'totalExpenses';
 
-		// Баланс: если удаляем доход — вычитаем, если удаляем расход — возвращаем деньги
 		const newWalletAmount =
 			transactionType === 'income'
 				? Number(walletData.amount || 0) - transactionAmount
 				: Number(walletData.amount || 0) + transactionAmount;
 
-		// Общие итоги: всегда вычитаем сумму удаляемой транзакции из соответствующего итога
 		const newTotalAmount =
 			Number(walletData[updateType] || 0) - transactionAmount;
 
-		// Проверка: нельзя удалить доход, если после этого баланс станет отрицательным (опционально)
 		if (transactionType === 'income' && newWalletAmount < 0) {
 			return {
 				success: false,
-				msg: 'Cannot delete transaction: wallet balance would become negative',
+				msg: "Неможливо видалити транзакцію: баланс гаманця стане від'ємним",
 			};
 		}
 
-		// 4. ОБНОВЛЯЕМ КОШЕЛЕК (именно через updateDoc)
 		await updateDoc(walletRef, {
 			amount: newWalletAmount,
 			[updateType]: newTotalAmount,
 		});
 
-		// 5. УДАЛЯЕМ ТРАНЗАКЦИЮ
 		await deleteDoc(transactionRef);
 
 		return { success: true };
@@ -277,11 +266,169 @@ export const fetchWeekStats = async (uid: string): Promise<ResponseType> => {
 			const transaction = doc.data() as TransactionType;
 			transaction.id = doc.id;
 			transactions.push(transaction);
+
+			const transactionDate = (transaction.date as Timestamp)
+				.toDate()
+				.toISOString()
+				.split('T')[0];
+
+			const dayData = weeklyData.find(
+				(day) => day.date == transactionDate,
+			);
+
+			if (dayData) {
+				if (transaction.type == 'income') {
+					dayData.income += transaction.amount;
+				} else if (transaction.type == 'expense') {
+					dayData.expense += transaction.amount;
+				}
+			}
 		});
 
-		return { success: true };
+		const stats = weeklyData.flatMap((day) => [
+			{
+				value: day.income,
+				label: day.day,
+				spacing: scale(4),
+				labelWidth: scale(30),
+				frontColor: colors.primaryLight,
+			},
+			{
+				value: day.expense,
+				frontColor: colors.rose,
+			},
+		]);
+
+		return { success: true, data: { stats, transactions } };
 	} catch (error: any) {
 		console.error('Error fetching weekly stats:', error);
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchMonthStats = async (uid: string): Promise<ResponseType> => {
+	try {
+		const db = firestore;
+		const today = new Date();
+		const twelveMonthAgo = new Date(today);
+		twelveMonthAgo.setMonth(today.getMonth() - 12);
+
+		const transactionsQuery = query(
+			collection(db, 'transactions'),
+			where('date', '>=', Timestamp.fromDate(twelveMonthAgo)),
+			where('date', '<=', Timestamp.fromDate(today)),
+			orderBy('date', 'desc'),
+			where('uid', '==', uid),
+		);
+
+		const querySnapshot = await getDocs(transactionsQuery);
+		const monthlyData = getLast12Months();
+		const transactions: TransactionType[] = [];
+
+		querySnapshot.forEach((doc) => {
+			const transaction = doc.data() as TransactionType;
+			transaction.id = doc.id;
+			transactions.push(transaction);
+
+			const date = (transaction.date as Timestamp).toDate();
+			const transactionKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+			const monthData = monthlyData.find((m) => {
+				return m.key === transactionKey;
+			});
+
+			if (monthData) {
+				if (transaction.type === 'income') {
+					monthData.income += Number(transaction.amount);
+				} else {
+					monthData.expense += Number(transaction.amount);
+				}
+			}
+		});
+
+		const stats = monthlyData.flatMap((month) => [
+			{
+				value: month.income,
+				label: month.month,
+				spacing: scale(4),
+				labelWidth: scale(46),
+				frontColor: colors.primaryLight,
+			},
+			{
+				value: month.expense,
+				frontColor: colors.rose,
+			},
+		]);
+
+		return { success: true, data: { stats, transactions } };
+	} catch (error: any) {
+		console.error('Error fetching monthly stats:', error);
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchYearStats = async (uid: string): Promise<ResponseType> => {
+	try {
+		const db = firestore;
+
+		const transactionsQuery = query(
+			collection(db, 'transactions'),
+			orderBy('date', 'desc'),
+			where('uid', '==', uid),
+		);
+
+		const querySnapshot = await getDocs(transactionsQuery);
+		const transactions: TransactionType[] = [];
+
+		const firstTransaction = querySnapshot.docs.reduce((earliest, doc) => {
+			const transactionDate = doc.data().date.toDate();
+			return transactionDate < earliest ? transactionDate : earliest;
+		}, new Date());
+
+		const firstYear = firstTransaction.getFullYear();
+		const currentYear = new Date().getFullYear();
+
+		const yearlyData = getYearsRange(firstYear, currentYear);
+
+		querySnapshot.forEach((doc) => {
+			const transaction = doc.data() as TransactionType;
+			transaction.id = doc.id;
+			transactions.push(transaction);
+
+			const transactionYear = (transaction.date as Timestamp)
+				.toDate()
+				.getFullYear();
+
+			const yearData = yearlyData.find(
+				(item: any) => item.year === transactionYear.toString(),
+			);
+
+			if (yearData) {
+				if (transaction.type === 'income') {
+					yearData.income += Number(transaction.amount);
+				} else {
+					yearData.expense += Number(transaction.amount);
+				}
+			}
+		});
+
+		const stats = yearlyData.flatMap((year: any) => [
+			{
+				value: year.income,
+				label: year.year,
+				spacing: scale(4),
+				labelWidth: scale(46),
+				frontColor: colors.primaryLight,
+			},
+			{
+				value: year.expense,
+				frontColor: colors.rose,
+			},
+		]);
+
+		return { success: true, data: { stats, transactions } };
+	} catch (error: any) {
+		console.error('Error fetching yearly stats:', error);
 		return { success: false, msg: error.message };
 	}
 };

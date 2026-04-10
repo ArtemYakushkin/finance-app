@@ -56,7 +56,7 @@ const ProfileModal = () => {
 		let { name, image } = userData;
 
 		if (!name.trim()) {
-			Alert.alert('User', 'Please, fill all the fields');
+			Alert.alert('Користувач', 'Будь ласка, заповніть усі поля');
 			return;
 		}
 
@@ -67,7 +67,7 @@ const ProfileModal = () => {
 			updateUserData(user?.uid as string);
 			router.back();
 		} else {
-			Alert.alert('User', res.msg);
+			Alert.alert('Користувач', res.msg);
 		}
 	};
 
@@ -75,7 +75,7 @@ const ProfileModal = () => {
 		<ModalWrapper>
 			<View style={styles.container}>
 				<Header
-					title="Update Profile"
+					title="Оновити профіль"
 					leftIcon={<BackButton />}
 					style={{ marginBottom: spacingY._10 }}
 				/>
@@ -99,9 +99,9 @@ const ProfileModal = () => {
 					</View>
 
 					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200}>Name</Typo>
+						<Typo color={colors.neutral200}>Ім'я</Typo>
 						<Input
-							placeholder="Name"
+							placeholder="Ім'я"
 							value={userData.name}
 							onChangeText={(value) =>
 								setUserData({ ...userData, name: value })
@@ -122,7 +122,7 @@ const ProfileModal = () => {
 						color={colors.primaryLight}
 						size={21}
 					>
-						Update
+						Оновити
 					</Typo>
 				</Button>
 			</View>

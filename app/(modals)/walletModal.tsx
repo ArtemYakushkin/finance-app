@@ -16,7 +16,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 const WalletModal = () => {
-	const { user, updateUserData } = useAuth();
+	const { user } = useAuth();
 	const [wallet, setWallet] = useState<WalletType>({
 		name: '',
 		image: null,
@@ -45,22 +45,22 @@ const WalletModal = () => {
 		if (res.success) {
 			router.back();
 		} else {
-			Alert.alert('Wallet', res.msg);
+			Alert.alert('Гаманець', res.msg);
 		}
 	};
 
 	const showDeleteAlert = () => {
 		Alert.alert(
-			'Confirm',
-			'Are you sure you want to do this? \nThis action will remove all the transactions related to this wallet',
+			'Підтвердити',
+			"Ви впевнені, що хочете це зробити? \nЦя дія видалить усі транзакції, пов'язані з цим гаманцем",
 			[
 				{
-					text: 'Cancel',
+					text: 'Скасувати',
 					onPress: () => console.log('cancel delete'),
 					style: 'cancel',
 				},
 				{
-					text: 'Delete',
+					text: 'Видалити',
 					onPress: () => onDelete(),
 					style: 'destructive',
 				},
@@ -72,7 +72,7 @@ const WalletModal = () => {
 		let { name, image } = wallet;
 
 		if (!name.trim() || !image) {
-			Alert.alert('Wallet', 'Please, fill all the fields');
+			Alert.alert('Гаманець', 'Будь ласка, заповніть усі поля');
 			return;
 		}
 
@@ -91,7 +91,7 @@ const WalletModal = () => {
 		if (res.success) {
 			router.back();
 		} else {
-			Alert.alert('Wallet', res.msg);
+			Alert.alert('Гаманець', res.msg);
 		}
 	};
 
@@ -99,15 +99,17 @@ const WalletModal = () => {
 		<ModalWrapper>
 			<View style={styles.container}>
 				<Header
-					title={oldWallet?.id ? 'Update Wallet' : 'New Wallet'}
+					title={
+						oldWallet?.id ? 'Оновити гаманець' : 'Новий гаманець'
+					}
 					leftIcon={<BackButton />}
 					style={{ marginBottom: spacingY._10 }}
 				/>
 				<ScrollView contentContainerStyle={styles.form}>
 					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200}>Wallet Name</Typo>
+						<Typo color={colors.neutral200}>Назва гаманця</Typo>
 						<Input
-							placeholder="Salary"
+							placeholder="Назва гаманця"
 							value={wallet.name}
 							onChangeText={(value) =>
 								setWallet({ ...wallet, name: value })
@@ -116,7 +118,7 @@ const WalletModal = () => {
 					</View>
 
 					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200}>Wallet Icon</Typo>
+						<Typo color={colors.neutral200}>Значок гаманця</Typo>
 						<ImageUpload
 							file={wallet.image}
 							onSelect={(file) =>
@@ -125,7 +127,7 @@ const WalletModal = () => {
 							onClear={() =>
 								setWallet({ ...wallet, image: null })
 							}
-							placeholder="Upload Image"
+							placeholder="Завантажити зображення"
 						/>
 					</View>
 				</ScrollView>
@@ -154,7 +156,7 @@ const WalletModal = () => {
 						color={colors.primaryLight}
 						size={21}
 					>
-						{oldWallet?.id ? 'Update Wallet' : 'Add Wallet'}
+						{oldWallet?.id ? 'Оновити' : 'Додати'}
 					</Typo>
 				</Button>
 			</View>

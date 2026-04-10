@@ -39,20 +39,20 @@ const Login = () => {
 
 				<View style={{ gap: 5, marginTop: spacingY._20 }}>
 					<Typo size={30} fontWeight={'800'}>
-						Hey,
+						Хей,
 					</Typo>
 					<Typo size={30} fontWeight={'800'}>
-						Welcome Back
+						Ласкаво просимо назад
 					</Typo>
 				</View>
 
 				<View style={styles.form}>
 					<Typo size={16} color={colors.textLighter}>
-						Login now to track all your expenses
+						Увійдіть, щоб відстежувати свої витрати
 					</Typo>
 
 					<Input
-						placeholder="Enter your email"
+						placeholder="Введіть свою ел. адресу"
 						keyboardType="email-address"
 						autoCapitalize="none"
 						textContentType="emailAddress"
@@ -67,7 +67,7 @@ const Login = () => {
 					/>
 
 					<Input
-						placeholder="Enter your password"
+						placeholder="Введіть свій пароль"
 						onChangeText={(value) => (passwordRef.current = value)}
 						secureTextEntry
 						icon={
@@ -84,7 +84,7 @@ const Login = () => {
 						color={colors.text}
 						style={{ alignSelf: 'flex-end' }}
 					>
-						Forgot Password?
+						Забули пароль?
 					</Typo>
 
 					<Button loading={isLoading} onPress={handleSubmit}>
@@ -93,20 +93,20 @@ const Login = () => {
 							color={colors.primaryLight}
 							size={21}
 						>
-							Login
+							Вхід
 						</Typo>
 					</Button>
 				</View>
 
 				<View style={styles.footer}>
-					<Typo size={15}>Don't have an account?</Typo>
+					<Typo size={15}>Немає облікового запису?</Typo>
 					<Pressable onPress={() => router.push('/(auth)/register')}>
 						<Typo
 							size={15}
 							fontWeight={'700'}
 							color={colors.primaryLight}
 						>
-							Sign Up
+							Зареєструватися
 						</Typo>
 					</Pressable>
 				</View>

@@ -36,7 +36,7 @@ const Home = () => {
 				<View style={styles.header}>
 					<View style={{ gap: 4 }}>
 						<Typo size={16} color={colors.neutral400}>
-							Hello,
+							Привіт,
 						</Typo>
 						<Typo size={20} fontWeight={500}>
 							{user?.name}

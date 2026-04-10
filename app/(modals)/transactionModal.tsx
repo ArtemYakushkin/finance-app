@@ -124,22 +124,22 @@ const TransactionModal = () => {
 		if (res.success) {
 			router.back();
 		} else {
-			Alert.alert('Transaction', res.msg);
+			Alert.alert('Транзакція', res.msg);
 		}
 	};
 
 	const showDeleteAlert = () => {
 		Alert.alert(
-			'Confirm',
-			'Are you sure you want to delete this transaction',
+			'Підтвердити',
+			'Ви впевнені, що хочете видалити цю транзакцію?',
 			[
 				{
-					text: 'Cancel',
+					text: 'Скасувати',
 					onPress: () => console.log('cancel delete'),
 					style: 'cancel',
 				},
 				{
-					text: 'Delete',
+					text: 'Видалити',
 					onPress: () => onDelete(),
 					style: 'destructive',
 				},
@@ -152,21 +152,19 @@ const TransactionModal = () => {
 			transaction;
 
 		if (!walletId || !date || !amount || (type == 'expense' && !category)) {
-			Alert.alert('Transaction', 'Please fill all the fields!');
+			Alert.alert('Транзакція', 'Будь ласка, заповніть усі поля!');
 			return;
 		}
 
-		// --- ЛОГИКА ОПРЕДЕЛЕНИЯ ГРУППЫ ---
-		let categoryGroup = 'income'; // По умолчанию для доходов
+		let categoryGroup = 'income';
 
 		if (type === 'expense' && category) {
-			// Ищем, к какой группе относится выбранная категория в константах
 			for (const group in expenseCategories) {
 				const found = expenseCategories[
 					group as keyof typeof expenseCategories
 				].find((cat) => cat.value === category);
 				if (found) {
-					categoryGroup = group; // 'needs', 'desires' или 'saving'
+					categoryGroup = group;
 					break;
 				}
 			}
@@ -177,7 +175,7 @@ const TransactionModal = () => {
 			description,
 			amount,
 			category,
-			categoryGroup, // Сохраняем группу в объект
+			categoryGroup,
 			date,
 			walletId,
 			uid: user?.uid,
@@ -194,7 +192,7 @@ const TransactionModal = () => {
 		if (res.success) {
 			router.back();
 		} else {
-			Alert.alert('Transaction', res.msg);
+			Alert.alert('Транзакція', res.msg);
 		}
 	};
 
@@ -208,8 +206,8 @@ const TransactionModal = () => {
 					<Header
 						title={
 							oldTransaction?.id
-								? 'Update Transaction'
-								: 'New Transaction'
+								? 'Оновити транзакцію'
+								: 'Нова транзакція'
 						}
 						leftIcon={<BackButton />}
 						style={{ marginBottom: spacingY._10 }}
@@ -221,7 +219,7 @@ const TransactionModal = () => {
 					>
 						<View style={styles.inputContainer}>
 							<Typo color={colors.neutral200} size={16}>
-								Type
+								Тип
 							</Typo>
 							<View style={styles.typeContainer}>
 								{transactionTypes.map((item) => {
@@ -264,7 +262,7 @@ const TransactionModal = () => {
 
 						<View style={styles.inputContainer}>
 							<Typo color={colors.neutral200} size={16}>
-								Wallet
+								Гаманець
 							</Typo>
 							<View style={styles.dropdownShadowHolder}>
 								<Shadow
@@ -311,7 +309,7 @@ const TransactionModal = () => {
 											containerStyle={
 												styles.dropdownListContainer
 											}
-											placeholder={'Select wallet'}
+											placeholder={'Вибрати гаманець'}
 											value={transaction.walletId}
 											onChange={(item) => {
 												setTransaction({
@@ -328,7 +326,7 @@ const TransactionModal = () => {
 						{transaction.type === 'expense' && (
 							<View style={styles.inputContainer}>
 								<Typo color={colors.neutral200} size={16}>
-									Category Group
+									Група категорій
 								</Typo>
 								<View
 									style={[
@@ -349,7 +347,7 @@ const TransactionModal = () => {
 													setTransaction({
 														...transaction,
 														category: '',
-													}); // сброс подкатегории при смене группы
+													});
 												}}
 												style={{
 													flex: 1,
@@ -379,7 +377,7 @@ const TransactionModal = () => {
 											color={colors.neutral200}
 											size={16}
 										>
-											Subcategory
+											Підкатегорія
 										</Typo>
 										<View
 											style={styles.dropdownShadowHolder}
@@ -438,7 +436,7 @@ const TransactionModal = () => {
 															styles.dropdownListContainer
 														}
 														placeholder={
-															'Select subcategory'
+															'Вибрати підкатегорію'
 														}
 														value={
 															transaction.category
@@ -461,7 +459,7 @@ const TransactionModal = () => {
 
 						<View style={styles.inputContainer}>
 							<Typo color={colors.neutral200} size={16}>
-								Date
+								Дата
 							</Typo>
 
 							{!showDatePicker && (
@@ -548,7 +546,7 @@ const TransactionModal = () => {
 
 						<View style={styles.inputContainer}>
 							<Typo color={colors.neutral200} size={16}>
-								Amount
+								Сума
 							</Typo>
 							<Pressable onPress={() => setShowCalculator(true)}>
 								<View pointerEvents="none">
@@ -568,7 +566,7 @@ const TransactionModal = () => {
 							]}
 						>
 							<Typo color={colors.neutral200} size={16}>
-								Description
+								Опис
 							</Typo>
 							<Input
 								value={transaction.description}
@@ -606,7 +604,7 @@ const TransactionModal = () => {
 							color={colors.primaryLight}
 							size={21}
 						>
-							{oldTransaction?.id ? 'Update' : 'Submit'}
+							{oldTransaction?.id ? 'Оновити' : 'Створити'}
 						</Typo>
 					</Button>
 				</View>
