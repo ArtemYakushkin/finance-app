@@ -1,5 +1,7 @@
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { useAuth } from '@/context/authContext';
 import { WalletType } from '@/types';
+import { getCurrencySymbol } from '@/utils/common';
 import { verticalScale } from '@/utils/styling';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
@@ -10,44 +12,33 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Typo from './Typo';
 
-const WalletItem = ({
-	item,
-	index,
-	router,
-}: {
-	item: WalletType;
-	index: number;
-	router: Router;
-}) => {
+const WalletItem = ({ item, index, router }: { item: WalletType; index: number; router: Router }) => {
+	const { user } = useAuth();
+
+	const currencySymbol = getCurrencySymbol(user?.currency);
+
 	const openWallet = () => {
 		router.push({
 			pathname: '/(modals)/walletModal',
 			params: { id: item?.id, name: item?.name, image: item?.image },
 		});
 	};
+
 	return (
 		<Animated.View entering={FadeInDown.delay(index * 200).springify()}>
 			<Pressable onPress={openWallet}>
 				<BlurView intensity={25} tint="dark" style={styles.container}>
 					<View style={styles.imageContainer}>
-						<Image
-							style={{ flex: 1 }}
-							source={item?.image}
-							contentFit="cover"
-							transition={100}
-						/>
+						<Image style={{ flex: 1 }} source={item?.image} contentFit="cover" transition={100} />
 					</View>
 					<View style={styles.nameContainer}>
 						<Typo size={16}>{item?.name}</Typo>
 						<Typo size={14} color={colors.neutral400}>
-							${item?.amount}
+							{currencySymbol}
+							{item?.amount}
 						</Typo>
 					</View>
-					<Icons.CaretRight
-						size={verticalScale(20)}
-						weight="bold"
-						color={colors.white}
-					/>
+					<Icons.CaretRight size={verticalScale(20)} weight="bold" color={colors.white} />
 				</BlurView>
 			</Pressable>
 		</Animated.View>

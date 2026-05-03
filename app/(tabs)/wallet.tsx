@@ -5,6 +5,7 @@ import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
 import { WalletType } from '@/types';
+import { getCurrencySymbol } from '@/utils/common';
 import { verticalScale } from '@/utils/styling';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -22,10 +23,10 @@ const Wallet = () => {
 		loading,
 	} = useFetchData<WalletType>(
 		'wallets',
-		user?.uid
-			? [where('uid', '==', user?.uid), orderBy('created', 'desc')]
-			: [],
+		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
 	);
+
+	const currencySymbol = getCurrencySymbol(user?.currency);
 
 	const getTotalBalance = () =>
 		wallets.reduce((total, item) => {
@@ -39,7 +40,8 @@ const Wallet = () => {
 				<View style={styles.balanceView}>
 					<View style={{ alignItems: 'center' }}>
 						<Typo size={45} fontWeight={'500'}>
-							₴{getTotalBalance()?.toFixed(2)}
+							{currencySymbol}
+							{getTotalBalance()?.toFixed(2)}
 						</Typo>
 						<Typo size={16} color={colors.neutral500}>
 							Загальний баланс
@@ -48,11 +50,7 @@ const Wallet = () => {
 				</View>
 
 				<LinearGradient
-					colors={[
-						colors.gradientStart,
-						colors.gradientMid,
-						colors.gradientEnd,
-					]}
+					colors={[colors.gradientStart, colors.gradientMid, colors.gradientEnd]}
 					start={{ x: 0.5, y: 0 }}
 					end={{ x: 0.5, y: 1 }}
 					locations={[0, 0.45, 1]}
@@ -62,26 +60,14 @@ const Wallet = () => {
 						<Typo size={20} fontWeight={'500'}>
 							Мої гаманці
 						</Typo>
-						<TouchableOpacity
-							onPress={() => router.push('/(modals)/walletModal')}
-						>
-							<Icons.PlusCircle
-								weight="fill"
-								color={colors.primaryLight}
-								size={verticalScale(33)}
-							/>
+						<TouchableOpacity onPress={() => router.push('/(modals)/walletModal')}>
+							<Icons.PlusCircle weight="fill" color={colors.primaryLight} size={verticalScale(33)} />
 						</TouchableOpacity>
 					</View>
 
 					<FlatList
 						data={wallets}
-						renderItem={({ item, index }) => (
-							<WalletItem
-								item={item}
-								index={index}
-								router={router}
-							/>
-						)}
+						renderItem={({ item, index }) => <WalletItem item={item} index={index} router={router} />}
 						contentContainerStyle={styles.listStyle}
 					/>
 				</LinearGradient>

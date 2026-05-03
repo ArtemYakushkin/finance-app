@@ -7,6 +7,7 @@ import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import { fetchMonthStats, fetchWeekStats, fetchYearStats } from '@/services/transactionService';
 import { TransactionType } from '@/types';
+import { getCurrencySymbol } from '@/utils/common';
 import { scale, verticalScale } from '@/utils/styling';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
@@ -20,6 +21,8 @@ const Statistics = () => {
 	const [chartData, setChartData] = useState([]);
 	const [chartLoading, setChartLoading] = useState(false);
 	const [transactions, setTransactions] = useState([]);
+
+	const currencySymbol = getCurrencySymbol(user?.currency);
 
 	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
 	const lightShadow = 'rgba(65, 71, 85, 0.5)';
@@ -287,7 +290,8 @@ const Statistics = () => {
 																Всього
 															</Typo>
 															<Typo size={18} fontWeight={'700'}>
-																₴{pieData.reduce((acc, cur) => acc + cur.value, 0)}
+																{currencySymbol}
+																{pieData.reduce((acc, cur) => acc + cur.value, 0)}
 															</Typo>
 														</View>
 													);
@@ -374,7 +378,8 @@ const Statistics = () => {
 													</Typo>
 												</View>
 												<Typo size={16} fontWeight={'700'}>
-													₴{item.amount.toLocaleString()}
+													{currencySymbol}
+													{item.amount.toLocaleString()}
 												</Typo>
 											</LinearGradient>
 										</Shadow>

@@ -30,9 +30,8 @@ const Profile = () => {
 		},
 		{
 			title: 'Налаштування',
-			icon: (
-				<Icons.GearSix size={24} color={colors.white} weight="fill" />
-			),
+			icon: <Icons.GearSix size={24} color={colors.white} weight="fill" />,
+			routeName: '/(modals)/settingsModal',
 			bgColor: '#059669',
 		},
 		{
@@ -79,10 +78,7 @@ const Profile = () => {
 	return (
 		<ScreenWrapper>
 			<View style={styles.container}>
-				<Header
-					title="Профіль"
-					style={{ marginVertical: spacingY._10 }}
-				/>
+				<Header title="Профіль" style={{ marginVertical: spacingY._10 }} />
 
 				<View style={styles.userInfo}>
 					<Shadow
@@ -107,11 +103,7 @@ const Profile = () => {
 					</Shadow>
 
 					<View style={styles.nameContainer}>
-						<Typo
-							size={24}
-							fontWeight={'600'}
-							color={colors.neutral100}
-						>
+						<Typo size={24} fontWeight={'600'} color={colors.neutral100}>
 							{user?.name}
 						</Typo>
 						<Typo size={15} color={colors.neutral400}>
@@ -140,44 +132,30 @@ const Profile = () => {
 									styles.optionsContent,
 									{
 										backgroundColor: '#171921',
-										borderColor:
-											'rgba(255, 255, 255, 0.03)',
+										borderColor: 'rgba(255, 255, 255, 0.03)',
 									},
 								]}
 							>
 								{accountOptions.map((item, index) => {
-									const isLast =
-										index === accountOptions.length - 1;
+									const isLast = index === accountOptions.length - 1;
 									return (
-										<Animated.View
-											entering={FadeInDown.delay(
-												index * 50,
-											).springify()}
-											key={index}
-										>
+										<Animated.View entering={FadeInDown.delay(index * 50).springify()} key={index}>
 											<TouchableOpacity
 												style={styles.optionRow}
 												activeOpacity={0.6}
-												onPress={() =>
-													handlePress(item)
-												}
+												onPress={() => handlePress(item)}
 											>
 												<View
 													style={[
 														styles.listIcon,
 														{
-															backgroundColor:
-																item.bgColor,
+															backgroundColor: item.bgColor,
 														},
 													]}
 												>
 													{item.icon}
 												</View>
-												<Typo
-													size={16}
-													fontWeight={'500'}
-													style={{ flex: 1 }}
-												>
+												<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
 													{item.title}
 												</Typo>
 												<Icons.CaretRight
@@ -187,11 +165,7 @@ const Profile = () => {
 												/>
 											</TouchableOpacity>
 
-											{!isLast && (
-												<View
-													style={styles.separator}
-												/>
-											)}
+											{!isLast && <View style={styles.separator} />}
 										</Animated.View>
 									);
 								})}

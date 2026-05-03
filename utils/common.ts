@@ -15,20 +15,7 @@ export const getLast7Days = () => {
 	return result.reverse();
 };
 export const getLast12Months = () => {
-	const monthsOfYear = [
-		'Січ',
-		'Лют',
-		'Бер',
-		'Квіт',
-		'Трав',
-		'Черв',
-		'Лип',
-		'Серп',
-		'Вер',
-		'Жовт',
-		'Лист',
-		'Груд',
-	];
+	const monthsOfYear = ['Січ', 'Лют', 'Бер', 'Квіт', 'Трав', 'Черв', 'Лип', 'Серп', 'Вер', 'Жовт', 'Лист', 'Груд'];
 	const result = [];
 
 	for (let i = 11; i >= 0; i--) {
@@ -58,4 +45,17 @@ export const getYearsRange = (startYear: number, endYear: number): any => {
 	}
 
 	return result.reverse();
+};
+
+export const getCurrencySymbol = (currency: string = 'UAH') => {
+	switch (currency) {
+		case 'USD':
+			return '$';
+		case 'EUR':
+			return '€';
+		case 'UAH':
+			return '₴';
+		default:
+			return '₴';
+	}
 };

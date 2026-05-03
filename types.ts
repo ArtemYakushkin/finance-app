@@ -1,14 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 import { Icon } from 'phosphor-react-native';
 import React, { ReactNode } from 'react';
-import {
-	TextInput,
-	TextInputProps,
-	TextProps,
-	TextStyle,
-	TouchableOpacityProps,
-	ViewStyle,
-} from 'react-native';
+import { TextInput, TextInputProps, TextProps, TextStyle, TouchableOpacityProps, ViewStyle } from 'react-native';
 
 export type ScreenWrapperProps = {
 	style?: ViewStyle;
@@ -129,6 +122,7 @@ export type UserType = {
 	email?: string | null;
 	name: string | null;
 	image?: any;
+	currency?: string;
 } | null;
 
 export type UserDataType = {
@@ -139,16 +133,10 @@ export type UserDataType = {
 export type AuthContextType = {
 	user: UserType;
 	setUser: Function;
-	login: (
-		email: string,
-		password: string,
-	) => Promise<{ success: boolean; msg?: string }>;
-	register: (
-		email: string,
-		password: string,
-		name: string,
-	) => Promise<{ success: boolean; msg?: string }>;
+	login: (email: string, password: string) => Promise<{ success: boolean; msg?: string }>;
+	register: (email: string, password: string, name: string) => Promise<{ success: boolean; msg?: string }>;
 	updateUserData: (userId: string) => Promise<void>;
+	updateUser: (uid: string, data: Partial<UserType>) => Promise<{ success: boolean; msg?: string }>;
 };
 
 export type ResponseType = {

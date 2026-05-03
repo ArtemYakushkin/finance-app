@@ -2,6 +2,7 @@ import { colors, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
 import { WalletType } from '@/types';
+import { getCurrencySymbol } from '@/utils/common';
 import { scale, verticalScale } from '@/utils/styling';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
@@ -11,6 +12,7 @@ import Typo from './Typo';
 
 const HomeCard = () => {
 	const { user } = useAuth();
+	const currencySymbol = getCurrencySymbol(user?.currency);
 
 	const {
 		data: wallets,
@@ -18,9 +20,7 @@ const HomeCard = () => {
 		loading: walletLoading,
 	} = useFetchData<WalletType>(
 		'wallets',
-		user?.uid
-			? [where('uid', '==', user?.uid), orderBy('created', 'desc')]
-			: [],
+		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
 	);
 
 	const getTotals = () => {
@@ -40,33 +40,18 @@ const HomeCard = () => {
 	};
 
 	return (
-		<ImageBackground
-			source={require('../assets/images/Cards.png')}
-			resizeMode="stretch"
-			style={styles.bgImage}
-		>
+		<ImageBackground source={require('../assets/images/Cards.png')} resizeMode="stretch" style={styles.bgImage}>
 			<View style={styles.container}>
 				<View>
 					<View style={styles.totalBalanceRow}>
-						<Typo
-							size={17}
-							fontWeight={500}
-							color={colors.neutral300}
-						>
+						<Typo size={17} fontWeight={500} color={colors.neutral300}>
 							Загальний баланс
 						</Typo>
 
-						<Icons.DotsThreeOutline
-							size={verticalScale(23)}
-							color={colors.white}
-							weight="fill"
-						/>
+						<Icons.DotsThreeOutline size={verticalScale(23)} color={colors.white} weight="fill" />
 					</View>
 					<Typo size={30} fontWeight={'bold'} color={colors.white}>
-						₴{' '}
-						{walletLoading
-							? '----'
-							: getTotals()?.balance?.toFixed(2)}
+						{currencySymbol} {walletLoading ? '----' : getTotals()?.balance?.toFixed(2)}
 					</Typo>
 				</View>
 
@@ -74,30 +59,15 @@ const HomeCard = () => {
 					<View style={{ gap: verticalScale(5) }}>
 						<View style={styles.incomeExpense}>
 							<View style={styles.statsIcon}>
-								<Icons.ArrowDown
-									size={verticalScale(15)}
-									color={colors.black}
-									weight="bold"
-								/>
+								<Icons.ArrowDown size={verticalScale(15)} color={colors.black} weight="bold" />
 							</View>
-							<Typo
-								size={16}
-								fontWeight={500}
-								color={colors.neutral300}
-							>
+							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Дохід
 							</Typo>
 						</View>
 						<View style={{ alignSelf: 'center' }}>
-							<Typo
-								size={17}
-								fontWeight={600}
-								color={colors.green}
-							>
-								₴{' '}
-								{walletLoading
-									? '----'
-									: getTotals()?.income?.toFixed(2)}
+							<Typo size={17} fontWeight={600} color={colors.green}>
+								{currencySymbol} {walletLoading ? '----' : getTotals()?.income?.toFixed(2)}
 							</Typo>
 						</View>
 					</View>
@@ -105,30 +75,15 @@ const HomeCard = () => {
 					<View style={{ gap: verticalScale(5) }}>
 						<View style={styles.incomeExpense}>
 							<View style={styles.statsIcon}>
-								<Icons.ArrowUp
-									size={verticalScale(15)}
-									color={colors.black}
-									weight="bold"
-								/>
+								<Icons.ArrowUp size={verticalScale(15)} color={colors.black} weight="bold" />
 							</View>
-							<Typo
-								size={16}
-								fontWeight={500}
-								color={colors.neutral300}
-							>
+							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Витрати
 							</Typo>
 						</View>
 						<View style={{ alignSelf: 'center' }}>
-							<Typo
-								size={17}
-								fontWeight={600}
-								color={colors.rose}
-							>
-								₴{' '}
-								{walletLoading
-									? '----'
-									: getTotals()?.expenses?.toFixed(2)}
+							<Typo size={17} fontWeight={600} color={colors.rose}>
+								{currencySymbol} {walletLoading ? '----' : getTotals()?.expenses?.toFixed(2)}
 							</Typo>
 						</View>
 					</View>

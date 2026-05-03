@@ -1,6 +1,8 @@
 import { categoryGroups, expenseCategories, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { useAuth } from '@/context/authContext';
 import { TransactionItemProps, TransactionListType, TransactionType } from '@/types';
+import { getCurrencySymbol } from '@/utils/common';
 import { verticalScale } from '@/utils/styling';
 import { FlashList } from '@shopify/flash-list';
 import { BlurView } from 'expo-blur';
@@ -63,6 +65,9 @@ const TransactionList = ({ data, title, loading, emptyListMessage }: Transaction
 };
 
 const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => {
+	const { user } = useAuth();
+	const currencySymbol = getCurrencySymbol(user?.currency);
+
 	const getCategoryInfo = () => {
 		if (item?.type === 'income') return { groupLabel: 'Дохід', data: incomeCategory };
 
@@ -131,7 +136,7 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 
 					<View style={styles.amountDate}>
 						<Typo fontWeight={'700'} color={item?.type == 'income' ? colors.primary : colors.rose}>
-							{`${item?.type == 'income' ? '+₴' : '-₴'} ${item?.amount}`}
+							{`${item?.type == 'income' ? `+${currencySymbol}` : `-${currencySymbol}`} ${item?.amount}`}
 						</Typo>
 						<Typo size={13} color={colors.neutral400}>
 							{date}
