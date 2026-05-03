@@ -1,14 +1,6 @@
-import {
-	categoryGroups,
-	expenseCategories,
-	incomeCategory,
-} from '@/constants/data';
+import { categoryGroups, expenseCategories, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
-import {
-	TransactionItemProps,
-	TransactionListType,
-	TransactionType,
-} from '@/types';
+import { TransactionItemProps, TransactionListType, TransactionType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { FlashList } from '@shopify/flash-list';
 import { BlurView } from 'expo-blur';
@@ -19,12 +11,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Loading from './Loading';
 import Typo from './Typo';
 
-const TransactionList = ({
-	data,
-	title,
-	loading,
-	emptyListMessage,
-}: TransactionListType) => {
+const TransactionList = ({ data, title, loading, emptyListMessage }: TransactionListType) => {
 	const router = useRouter();
 
 	const handleClick = (item: TransactionType) => {
@@ -55,21 +42,13 @@ const TransactionList = ({
 				<FlashList
 					data={data}
 					renderItem={({ item, index }) => (
-						<TransactionItem
-							item={item}
-							index={index}
-							handleClick={handleClick}
-						/>
+						<TransactionItem item={item} index={index} handleClick={handleClick} />
 					)}
 				/>
 			</View>
 
 			{!loading && data.length == 0 && (
-				<Typo
-					size={15}
-					color={colors.neutral400}
-					style={{ textAlign: 'center', marginTop: spacingY._15 }}
-				>
+				<Typo size={15} color={colors.neutral400} style={{ textAlign: 'center', marginTop: spacingY._15 }}>
 					{emptyListMessage}
 				</Typo>
 			)}
@@ -83,54 +62,18 @@ const TransactionList = ({
 	);
 };
 
-const TransactionItem = ({
-	item,
-	index,
-	handleClick,
-}: TransactionItemProps) => {
-	// const getCategoryInfo = () => {
-	// 	if (item?.type === 'income')
-	// 		return { groupLabel: 'Дохід', data: incomeCategory };
-
-	// 	const groupNames: Record<string, string> = {
-	// 		needs: 'База',
-	// 		desires: 'Хочу',
-	// 		saving: 'Резерв',
-	// 	};
-
-	// 	for (const group in expenseCategories) {
-	// 		const found = expenseCategories[
-	// 			group as keyof typeof expenseCategories
-	// 		].find((cat) => cat.value === item.category);
-	// 		if (found) {
-	// 			return {
-	// 				groupLabel: groupNames[group] || group,
-	// 				data: found,
-	// 			};
-	// 		}
-	// 	}
-
-	// 	return {
-	// 		groupLabel: 'Інше',
-	// 		data: {
-	// 			label: item.category || 'Невідомо',
-	// 			icon: null,
-	// 			bgColor: colors.neutral500,
-	// 		},
-	// 	};
-	// };
+const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => {
 	const getCategoryInfo = () => {
-		if (item?.type === 'income')
-			return { groupLabel: 'Дохід', data: incomeCategory };
+		if (item?.type === 'income') return { groupLabel: 'Дохід', data: incomeCategory };
 
 		// 1. Находим, к какой группе относится подкатегория транзакции
 		let groupKey = '';
 		let subCategory: any = null;
 
 		for (const key in expenseCategories) {
-			const found = expenseCategories[
-				key as keyof typeof expenseCategories
-			].find((cat) => cat.value === item.category);
+			const found = expenseCategories[key as keyof typeof expenseCategories].find(
+				(cat) => cat.value === item.category,
+			);
 
 			if (found) {
 				groupKey = key;
@@ -167,53 +110,27 @@ const TransactionItem = ({
 	const { groupLabel, data: category } = getCategoryInfo();
 	const IconComponent = category.icon;
 
-	const date = (item?.date as Timestamp)
-		?.toDate()
-		?.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+	const date = (item?.date as Timestamp)?.toDate()?.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
 
 	return (
 		<View style={{ marginBottom: spacingY._12 }}>
 			<Pressable onPress={() => handleClick(item)}>
 				<BlurView intensity={25} tint="dark" style={styles.row}>
-					<View
-						style={[
-							styles.icon,
-							{ backgroundColor: category.bgColor },
-						]}
-					>
-						{IconComponent && (
-							<IconComponent
-								size={verticalScale(25)}
-								weight="fill"
-								color={colors.white}
-							/>
-						)}
+					<View style={[styles.icon, { backgroundColor: category.bgColor }]}>
+						{IconComponent && <IconComponent size={verticalScale(25)} weight="fill" color={colors.white} />}
 					</View>
 
 					<View style={styles.categoryDes}>
 						<Typo size={17} fontWeight={'600'}>
-							{item?.type === 'income'
-								? category.label
-								: `${groupLabel} / ${category.label}`}
+							{item?.type === 'income' ? category.label : `${groupLabel} / ${category.label}`}
 						</Typo>
-						<Typo
-							size={12}
-							color={colors.neutral400}
-							textProps={{ numberOfLines: 1 }}
-						>
+						<Typo size={12} color={colors.neutral400} textProps={{ numberOfLines: 1 }}>
 							{item?.description}
 						</Typo>
 					</View>
 
 					<View style={styles.amountDate}>
-						<Typo
-							fontWeight={'700'}
-							color={
-								item?.type == 'income'
-									? colors.primary
-									: colors.rose
-							}
-						>
+						<Typo fontWeight={'700'} color={item?.type == 'income' ? colors.primary : colors.rose}>
 							{`${item?.type == 'income' ? '+₴' : '-₴'} ${item?.amount}`}
 						</Typo>
 						<Typo size={13} color={colors.neutral400}>

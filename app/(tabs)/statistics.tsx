@@ -1,26 +1,17 @@
 import Header from '@/components/Header';
 import Loading from '@/components/Loading';
 import ScreenWrapper from '@/components/ScreenWrapper';
-import TransactionList from '@/components/TransactionList';
+import Typo from '@/components/Typo';
+import { categoryGroups, expenseCategories } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
-import {
-	fetchMonthStats,
-	fetchWeekStats,
-	fetchYearStats,
-} from '@/services/transactionService';
+import { fetchMonthStats, fetchWeekStats, fetchYearStats } from '@/services/transactionService';
+import { TransactionType } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
-import {
-	Alert,
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-} from 'react-native';
-import { BarChart } from 'react-native-gifted-charts';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { Shadow } from 'react-native-shadow-2';
 
 const Statistics = () => {
@@ -30,10 +21,7 @@ const Statistics = () => {
 	const [chartLoading, setChartLoading] = useState(false);
 	const [transactions, setTransactions] = useState([]);
 
-	const gradientColors: [string, string, ...string[]] = [
-		colors.gradientStart,
-		colors.gradientMid,
-	];
+	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
 	const lightShadow = 'rgba(65, 71, 85, 0.5)';
 	const darkShadow = colors.gradientEnd;
 	const btnRadius = radius._17;
@@ -82,18 +70,84 @@ const Statistics = () => {
 		setChartLoading(false);
 	};
 
+	const getPieChartData = () => {
+		let totals = { needs: 0, desires: 0, saving: 0 };
+
+		transactions.forEach((item: TransactionType) => {
+			if (item.type === 'expense') {
+				if (expenseCategories.needs.some((c) => c.value === item.category)) totals.needs += item.amount;
+				else if (expenseCategories.desires.some((c) => c.value === item.category))
+					totals.desires += item.amount;
+				else if (expenseCategories.saving.some((c) => c.value === item.category)) totals.saving += item.amount;
+			}
+		});
+
+		const totalExpense = totals.needs + totals.desires + totals.saving;
+		if (totalExpense === 0) return [];
+
+		return [
+			{
+				value: totals.needs,
+				color: '#4a90e2',
+				text: 'База',
+			},
+			{ value: totals.desires, color: '#ef4444', text: 'Хочу' },
+			{ value: totals.saving, color: '#a3e635', text: 'Резерв' },
+		];
+	};
+
+	const pieData = getPieChartData();
+
+	const getSubCategoryData = () => {
+		const grouped = transactions.reduce(
+			(acc, item: TransactionType) => {
+				if (item.type === 'expense') {
+					const cat = item.category || 'Інше';
+					acc[cat] = (acc[cat] || 0) + Number(item.amount);
+				}
+				return acc;
+			},
+			{} as Record<string, number>,
+		);
+
+		return Object.keys(grouped)
+			.map((catName) => {
+				let groupKey = '';
+				let categoryLabel = catName; // По умолчанию, если не найдем перевод
+
+				// 1. Ищем категорию во всех группах, чтобы достать её Label
+				for (const key in expenseCategories) {
+					const found = expenseCategories[key as keyof typeof expenseCategories].find(
+						(c) => c.value === catName,
+					);
+					if (found) {
+						groupKey = key;
+						categoryLabel = found.label; // Берем украинское название
+						break;
+					}
+				}
+
+				// 2. Достаем иконку и цвет из основной группы (как и раньше)
+				const mainGroup = categoryGroups.find((g) => g.value === groupKey);
+
+				return {
+					name: categoryLabel, // Теперь здесь будет украинский текст
+					amount: grouped[catName],
+					icon: mainGroup?.icon,
+					color: mainGroup?.color || colors.neutral500,
+				};
+			})
+			.sort((a, b) => b.amount - a.amount);
+	};
+
+	const subCategories = getSubCategoryData();
+
 	return (
 		<ScreenWrapper>
 			<View style={styles.container}>
-				<Header
-					title="Статистика"
-					style={{ marginBottom: spacingY._10 }}
-				/>
+				<Header title="Статистика" style={{ marginBottom: spacingY._10 }} />
 
-				<ScrollView
-					contentContainerStyle={styles.scrollContent}
-					showsVerticalScrollIndicator={false}
-				>
+				<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 					<View style={styles.segmentedWrapper}>
 						<Shadow
 							distance={8}
@@ -101,10 +155,7 @@ const Statistics = () => {
 							offset={[-1, -1]}
 							stretch
 							containerStyle={{ borderRadius: btnRadius }}
-							style={[
-								styles.shadowWrapper,
-								{ borderRadius: btnRadius },
-							]}
+							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 						>
 							<Shadow
 								distance={8}
@@ -113,47 +164,22 @@ const Statistics = () => {
 								stretch
 								style={styles.shadowWrapper}
 							>
-								<View
-									style={[
-										styles.segmentedInner,
-										{ backgroundColor: colors.gradientMid },
-									]}
-								>
-									{['Неділя', 'Місяць', 'Рік'].map(
-										(label, index) => (
-											<TouchableOpacity
-												key={label}
-												style={styles.segmentBtn}
-												onPress={() =>
-													setActiveIndex(index)
-												}
-											>
-												{activeIndex === index ? (
-													<View
-														style={
-															styles.activeSegment
-														}
-													>
-														<Text
-															style={
-																styles.activeText
-															}
-														>
-															{label}
-														</Text>
-													</View>
-												) : (
-													<Text
-														style={
-															styles.inactiveText
-														}
-													>
-														{label}
-													</Text>
-												)}
-											</TouchableOpacity>
-										),
-									)}
+								<View style={[styles.segmentedInner, { backgroundColor: colors.gradientMid }]}>
+									{['Неділя', 'Місяць', 'Рік'].map((label, index) => (
+										<TouchableOpacity
+											key={label}
+											style={styles.segmentBtn}
+											onPress={() => setActiveIndex(index)}
+										>
+											{activeIndex === index ? (
+												<View style={styles.activeSegment}>
+													<Text style={styles.activeText}>{label}</Text>
+												</View>
+											) : (
+												<Text style={styles.inactiveText}>{label}</Text>
+											)}
+										</TouchableOpacity>
+									))}
 								</View>
 							</Shadow>
 						</Shadow>
@@ -166,10 +192,7 @@ const Statistics = () => {
 							offset={[-1, -1]}
 							stretch
 							containerStyle={{ borderRadius: btnRadius }}
-							style={[
-								styles.shadowWrapper,
-								{ borderRadius: btnRadius },
-							]}
+							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 						>
 							<Shadow
 								distance={8}
@@ -179,10 +202,7 @@ const Statistics = () => {
 								style={styles.shadowWrapper}
 							>
 								<LinearGradient
-									colors={[
-										colors.gradientStart,
-										colors.gradientMid,
-									]}
+									colors={[colors.gradientStart, colors.gradientMid]}
 									style={styles.chartInner}
 								>
 									{chartData.length > 0 ? (
@@ -208,19 +228,11 @@ const Statistics = () => {
 										/>
 									) : (
 										<View style={styles.noDataContainer}>
-											{!chartLoading && (
-												<Text
-													style={styles.inactiveText}
-												>
-													Немає інформації
-												</Text>
-											)}
+											{!chartLoading && <Text style={styles.inactiveText}>Немає інформації</Text>}
 										</View>
 									)}
 									{chartLoading && (
-										<View
-											style={styles.chartLoadingOverlay}
-										>
+										<View style={styles.chartLoadingOverlay}>
 											<Loading />
 										</View>
 									)}
@@ -229,11 +241,152 @@ const Statistics = () => {
 						</Shadow>
 					</View>
 
-					<TransactionList
-						title="Транзакції"
-						emptyListMessage="Транзакцій не знайдено"
-						data={transactions}
-					/>
+					<View style={styles.chartWrapper}>
+						<Shadow
+							distance={6}
+							startColor={lightShadow}
+							offset={[-1, -1]}
+							stretch
+							containerStyle={{ borderRadius: btnRadius }}
+							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+						>
+							<Shadow
+								distance={8}
+								startColor={darkShadow}
+								offset={[3, 3]}
+								stretch
+								style={styles.shadowWrapper}
+							>
+								<LinearGradient
+									colors={[colors.gradientStart, colors.gradientMid]}
+									style={styles.pieInner}
+								>
+									<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
+										Розподіл витрат
+									</Typo>
+
+									{pieData.length > 0 ? (
+										<View style={styles.pieContainer}>
+											<PieChart
+												data={pieData}
+												donut
+												showGradient
+												sectionAutoFocus
+												radius={100}
+												innerRadius={70}
+												innerCircleColor={colors.gradientMid}
+												centerLabelComponent={() => {
+													return (
+														<View
+															style={{
+																justifyContent: 'center',
+																alignItems: 'center',
+															}}
+														>
+															<Typo size={14} color={colors.neutral400}>
+																Всього
+															</Typo>
+															<Typo size={18} fontWeight={'700'}>
+																₴{pieData.reduce((acc, cur) => acc + cur.value, 0)}
+															</Typo>
+														</View>
+													);
+												}}
+											/>
+
+											<View style={styles.legendContainer}>
+												{pieData.map((item, index) => (
+													<View key={index} style={styles.legendItem}>
+														<View
+															style={[
+																styles.dot,
+																{
+																	backgroundColor: item.color,
+																},
+															]}
+														/>
+														<Typo size={13} color={colors.neutral300}>
+															{item.text}
+														</Typo>
+														<Typo size={13} fontWeight={'600'}>
+															{(
+																(item.value /
+																	pieData.reduce((a, b) => a + b.value, 0)) *
+																100
+															).toFixed(1)}
+															%
+														</Typo>
+													</View>
+												))}
+											</View>
+										</View>
+									) : (
+										<View style={styles.noDataContainer}>
+											<Typo color={colors.neutral400}>Немає даних для діаграми</Typo>
+										</View>
+									)}
+								</LinearGradient>
+							</Shadow>
+						</Shadow>
+					</View>
+
+					<View style={{ gap: spacingY._15, paddingHorizontal: 10 }}>
+						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 5, textAlign: 'center' }}>
+							Деталі за категоріями
+						</Typo>
+
+						{subCategories.length > 0 ? (
+							subCategories.map((item, index) => {
+								const IconComponent = item.icon;
+								return (
+									<Shadow
+										key={index}
+										distance={6}
+										startColor={lightShadow}
+										offset={[-1, -1]}
+										stretch
+										containerStyle={{ borderRadius: btnRadius }}
+										style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+									>
+										<Shadow
+											distance={8}
+											startColor={darkShadow}
+											offset={[3, 3]}
+											stretch
+											style={styles.shadowWrapper}
+										>
+											<LinearGradient
+												colors={[colors.gradientStart, colors.gradientMid]}
+												style={styles.categoryCard}
+											>
+												<View style={styles.categoryInfo}>
+													<View style={[styles.iconWrapper, { backgroundColor: item.color }]}>
+														{IconComponent && (
+															<IconComponent
+																size={verticalScale(20)}
+																weight="fill"
+																color={colors.white}
+															/>
+														)}
+													</View>
+													<Typo size={16} fontWeight={'500'}>
+														{item.name}
+													</Typo>
+												</View>
+												<Typo size={16} fontWeight={'700'}>
+													₴{item.amount.toLocaleString()}
+												</Typo>
+											</LinearGradient>
+										</Shadow>
+									</Shadow>
+								);
+							})
+						) : (
+							<Typo color={colors.neutral400} style={{ textAlign: 'center' }}>
+								Немає витрат для відображення
+							</Typo>
+						)}
+					</View>
 				</ScrollView>
 			</View>
 		</ScreenWrapper>
@@ -247,7 +400,7 @@ const styles = StyleSheet.create({
 	scrollContent: {
 		gap: spacingY._30,
 		paddingTop: spacingY._10,
-		paddingBottom: verticalScale(120),
+		paddingBottom: verticalScale(30),
 	},
 	segmentedWrapper: { paddingHorizontal: 10 },
 	segmentedInner: {
@@ -299,5 +452,55 @@ const styles = StyleSheet.create({
 	},
 	shadowWrapper: {
 		alignSelf: 'stretch',
+	},
+	pieInner: {
+		padding: spacingX._10,
+		borderRadius: radius._20,
+		minHeight: verticalScale(200),
+		borderWidth: 1,
+		borderColor: 'rgba(255,255,255,0.05)',
+		alignItems: 'center',
+	},
+	pieContainer: {
+		alignItems: 'center',
+		gap: 10,
+	},
+	legendContainer: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+		gap: 12,
+	},
+	legendItem: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 8,
+	},
+	dot: {
+		width: 10,
+		height: 10,
+		borderRadius: 5,
+	},
+	categoryCard: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		padding: spacingX._10,
+		borderRadius: radius._15,
+		borderWidth: 1,
+		borderColor: 'rgba(255,255,255,0.05)',
+	},
+	categoryInfo: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: spacingX._12,
+	},
+	iconWrapper: {
+		width: verticalScale(40),
+		height: verticalScale(40),
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: 'rgba(255,255,255,0.03)',
+		borderRadius: radius._10,
 	},
 });
