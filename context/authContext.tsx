@@ -93,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 					name: data.name || null,
 					image: data.image || null,
 					currency: data.currency || 'UAH',
+					startOfMonth: data.startOfMonth || 1,
 				};
 				setUser({ ...userData });
 			}

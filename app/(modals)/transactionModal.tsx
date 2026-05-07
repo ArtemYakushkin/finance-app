@@ -5,18 +5,11 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import {
-	categoryGroups,
-	expenseCategories,
-	transactionTypes,
-} from '@/constants/data';
+import { categoryGroups, expenseCategories, transactionTypes } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
-import {
-	createOrUpdateTransaction,
-	deleteTransaction,
-} from '@/services/transactionService';
+import { createOrUpdateTransaction, deleteTransaction } from '@/services/transactionService';
 import { TransactionType, WalletType } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -58,10 +51,13 @@ const TransactionModal = () => {
 	const btnRadius = radius._17;
 	const lightShadow = 'rgba(65, 71, 85, 0.5)';
 	const darkShadow = colors.gradientEnd;
-	const concavedGradientColors: [string, string] = [
-		colors.gradientMid as string,
-		colors.gradientEnd as string,
-	];
+	const concavedGradientColors: [string, string] = [colors.gradientMid as string, colors.gradientEnd as string];
+	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
+
+	const { data: userCategories, loading: categoriesLoading } = useFetchData<any>(
+		'categories',
+		user?.uid ? [where('uid', '==', user?.uid)] : [],
+	);
 
 	const {
 		data: wallets,
@@ -69,10 +65,21 @@ const TransactionModal = () => {
 		loading: walletLoading,
 	} = useFetchData<WalletType>(
 		'wallets',
-		user?.uid
-			? [where('uid', '==', user?.uid), orderBy('created', 'desc')]
-			: [],
+		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
 	);
+
+	// 2. Фильтруем категории по выбранной группе (для выпадающего списка)
+	const filteredSubCategories = userCategories
+		.filter((cat) => cat.group === selectedGroup && cat.type === transaction.type)
+		.map((cat) => ({ label: cat.name, value: cat.name }));
+
+	// 3. Эффект для автоматического открытия модалки создания категорий
+	const handleCategorySelectPress = () => {
+		if (filteredSubCategories.length === 0) {
+			// Если подкатегорий в этой группе нет, сразу отправляем на создание
+			router.push('/(modals)/categoriesModal');
+		}
+	};
 
 	type paramType = {
 		id: string;
@@ -116,10 +123,7 @@ const TransactionModal = () => {
 	const onDelete = async () => {
 		if (!oldTransaction?.id) return;
 		setLoading(true);
-		const res = await deleteTransaction(
-			oldTransaction?.id,
-			oldTransaction.walletId,
-		);
+		const res = await deleteTransaction(oldTransaction?.id, oldTransaction.walletId);
 		setLoading(false);
 		if (res.success) {
 			router.back();
@@ -129,46 +133,31 @@ const TransactionModal = () => {
 	};
 
 	const showDeleteAlert = () => {
-		Alert.alert(
-			'Підтвердити',
-			'Ви впевнені, що хочете видалити цю транзакцію?',
-			[
-				{
-					text: 'Скасувати',
-					onPress: () => console.log('cancel delete'),
-					style: 'cancel',
-				},
-				{
-					text: 'Видалити',
-					onPress: () => onDelete(),
-					style: 'destructive',
-				},
-			],
-		);
+		Alert.alert('Підтвердити', 'Ви впевнені, що хочете видалити цю транзакцію?', [
+			{
+				text: 'Скасувати',
+				onPress: () => console.log('cancel delete'),
+				style: 'cancel',
+			},
+			{
+				text: 'Видалити',
+				onPress: () => onDelete(),
+				style: 'destructive',
+			},
+		]);
 	};
 
 	const onSubmit = async () => {
-		const { type, description, amount, category, date, walletId } =
-			transaction;
+		const { type, description, amount, category, date, walletId } = transaction;
 
 		if (!walletId || !date || !amount || (type == 'expense' && !category)) {
 			Alert.alert('Транзакція', 'Будь ласка, заповніть усі поля!');
 			return;
 		}
 
-		let categoryGroup = 'income';
-
-		if (type === 'expense' && category) {
-			for (const group in expenseCategories) {
-				const found = expenseCategories[
-					group as keyof typeof expenseCategories
-				].find((cat) => cat.value === category);
-				if (found) {
-					categoryGroup = group;
-					break;
-				}
-			}
-		}
+		// Находим группу категории из загруженных данных
+		const categoryData = userCategories.find((c) => c.name === category);
+		const categoryGroup = categoryData ? categoryData.group : type === 'income' ? 'income' : 'other';
 
 		let transactionData: TransactionType = {
 			type,
@@ -181,34 +170,21 @@ const TransactionModal = () => {
 			uid: user?.uid,
 		};
 
-		if (oldTransaction?.id) {
-			transactionData.id = oldTransaction.id;
-		}
+		if (oldTransaction?.id) transactionData.id = oldTransaction.id;
 
 		setLoading(true);
 		const res = await createOrUpdateTransaction(transactionData);
-
 		setLoading(false);
-		if (res.success) {
-			router.back();
-		} else {
-			Alert.alert('Транзакція', res.msg);
-		}
+		if (res.success) router.back();
+		else Alert.alert('Помилка', res.msg);
 	};
 
 	return (
 		<ModalWrapper>
-			<KeyboardAvoidingView
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-				style={{ flex: 1 }}
-			>
+			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
 				<View style={styles.container}>
 					<Header
-						title={
-							oldTransaction?.id
-								? 'Оновити транзакцію'
-								: 'Нова транзакція'
-						}
+						title={oldTransaction?.id ? 'Оновити транзакцію' : 'Нова транзакція'}
 						leftIcon={<BackButton />}
 						style={{ marginBottom: spacingY._10 }}
 					/>
@@ -218,17 +194,13 @@ const TransactionModal = () => {
 						keyboardShouldPersistTaps="handled"
 					>
 						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Тип
 							</Typo>
 							<View style={styles.typeContainer}>
 								{transactionTypes.map((item) => {
-									const isActive =
-										transaction.type === item.value;
-									const activeTextColor =
-										item.value === 'income'
-											? colors.primary
-											: colors.rose;
+									const isActive = transaction.type === item.value;
+									const activeTextColor = item.value === 'income' ? colors.primary : colors.rose;
 
 									return (
 										<Button
@@ -243,14 +215,8 @@ const TransactionModal = () => {
 										>
 											<Typo
 												size={16}
-												fontWeight={
-													isActive ? '700' : '500'
-												}
-												color={
-													isActive
-														? activeTextColor
-														: colors.neutral400
-												}
+												fontWeight={isActive ? '700' : '500'}
+												color={isActive ? activeTextColor : colors.neutral400}
 											>
 												{item.label}
 											</Typo>
@@ -261,7 +227,7 @@ const TransactionModal = () => {
 						</View>
 
 						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Гаманець
 							</Typo>
 							<View style={styles.dropdownShadowHolder}>
@@ -271,53 +237,50 @@ const TransactionModal = () => {
 									offset={[-1, -1]}
 									stretch
 									containerStyle={{ borderRadius: btnRadius }}
-									style={[
-										styles.shadowWrapper,
-										{ borderRadius: btnRadius },
-									]}
+									style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 								>
 									<Shadow
 										distance={8}
 										startColor={darkShadow}
-										offset={[3, 3]}
+										offset={[2, 2]}
 										stretch
 										style={styles.shadowWrapper}
 									>
-										<Dropdown
-											style={styles.dropdownContainer}
-											activeColor={colors.gradientStart}
-											placeholderStyle={
-												styles.dropdownPlaceholder
-											}
-											selectedTextStyle={
-												styles.dropdownSelectedText
-											}
-											iconStyle={styles.dropdownIcon}
-											data={wallets.map((wallet) => ({
-												label: `${wallet?.name} ($${wallet?.amount})`,
-												value: wallet?.id,
-											}))}
-											maxHeight={300}
-											labelField="label"
-											valueField="value"
-											itemTextStyle={
-												styles.dropdownItemText
-											}
-											itemContainerStyle={
-												styles.dropdownItemContainer
-											}
-											containerStyle={
-												styles.dropdownListContainer
-											}
-											placeholder={'Вибрати гаманець'}
-											value={transaction.walletId}
-											onChange={(item) => {
-												setTransaction({
-													...transaction,
-													walletId: item.value || '',
-												});
-											}}
-										/>
+										<LinearGradient
+											colors={gradientColors}
+											start={{ x: 0, y: 0 }}
+											end={{ x: 1, y: 1 }}
+											style={[styles.dropdownGradientWrapper, { borderRadius: btnRadius }]}
+										>
+											<Dropdown
+												style={[
+													styles.dropdownContainer,
+													{ backgroundColor: 'transparent', borderWidth: 0 },
+												]}
+												activeColor={colors.gradientStart}
+												placeholderStyle={styles.dropdownPlaceholder}
+												selectedTextStyle={styles.dropdownSelectedText}
+												iconStyle={styles.dropdownIcon}
+												data={wallets.map((wallet) => ({
+													label: `${wallet?.name} ($${wallet?.amount})`,
+													value: wallet?.id,
+												}))}
+												maxHeight={300}
+												labelField="label"
+												valueField="value"
+												itemTextStyle={styles.dropdownItemText}
+												itemContainerStyle={styles.dropdownItemContainer}
+												containerStyle={styles.dropdownListContainer}
+												placeholder={'Вибрати гаманець'}
+												value={transaction.walletId}
+												onChange={(item) => {
+													setTransaction({
+														...transaction,
+														walletId: item.value || '',
+													});
+												}}
+											/>
+										</LinearGradient>
 									</Shadow>
 								</Shadow>
 							</View>
@@ -325,44 +288,25 @@ const TransactionModal = () => {
 
 						{transaction.type === 'expense' && (
 							<View style={styles.inputContainer}>
-								<Typo color={colors.neutral200} size={16}>
+								<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 									Група категорій
 								</Typo>
-								<View
-									style={[
-										styles.typeContainer,
-										{ marginBottom: 20 },
-									]}
-								>
+								<View style={styles.typeContainer}>
 									{categoryGroups.map((group) => {
-										const isActive =
-											selectedGroup === group.value;
+										const isActive = selectedGroup === group.value;
 										return (
 											<Button
 												key={group.value}
 												onPress={() => {
-													setSelectedGroup(
-														group.value,
-													);
-													setTransaction({
-														...transaction,
-														category: '',
-													});
+													setSelectedGroup(group.value);
+													setTransaction((prev) => ({ ...prev, category: '' }));
 												}}
-												style={{
-													flex: 1,
-												}}
+												style={{ flex: 1 }}
 											>
 												<Typo
 													size={14}
-													fontWeight={
-														isActive ? '700' : '500'
-													}
-													color={
-														isActive
-															? group.color
-															: colors.neutral400
-													}
+													fontWeight={isActive ? '700' : '500'}
+													color={isActive ? group.color : colors.neutral400}
 												>
 													{group.label}
 												</Typo>
@@ -376,99 +320,106 @@ const TransactionModal = () => {
 										<Typo
 											color={colors.neutral200}
 											size={16}
+											style={{ paddingLeft: 5, marginTop: 10 }}
 										>
 											Підкатегорія
 										</Typo>
-										<View
-											style={styles.dropdownShadowHolder}
-										>
-											<Shadow
-												distance={6}
-												startColor={lightShadow}
-												offset={[-1, -1]}
-												stretch
-												containerStyle={{
-													borderRadius: btnRadius,
-												}}
-												style={[
-													styles.shadowWrapper,
-													{ borderRadius: btnRadius },
-												]}
-											>
+
+										{filteredSubCategories.length > 0 ? (
+											<View style={styles.dropdownShadowHolder}>
 												<Shadow
-													distance={8}
-													startColor={darkShadow}
-													offset={[3, 3]}
+													distance={6}
+													startColor={lightShadow}
+													offset={[-1, -1]}
 													stretch
-													style={styles.shadowWrapper}
+													containerStyle={{ borderRadius: btnRadius }}
+													style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 												>
-													<Dropdown
-														style={
-															styles.dropdownContainer
-														}
-														activeColor={
-															colors.gradientStart
-														}
-														placeholderStyle={
-															styles.dropdownPlaceholder
-														}
-														selectedTextStyle={
-															styles.dropdownSelectedText
-														}
-														iconStyle={
-															styles.dropdownIcon
-														}
-														data={
-															expenseCategories[
-																selectedGroup as keyof typeof expenseCategories
-															]
-														}
-														maxHeight={300}
-														labelField="label"
-														valueField="value"
-														itemTextStyle={
-															styles.dropdownItemText
-														}
-														itemContainerStyle={
-															styles.dropdownItemContainer
-														}
-														containerStyle={
-															styles.dropdownListContainer
-														}
-														placeholder={
-															'Вибрати підкатегорію'
-														}
-														value={
-															transaction.category
-														}
-														onChange={(item) => {
-															setTransaction({
-																...transaction,
-																category:
-																	item.value,
-															});
-														}}
-													/>
+													<Shadow
+														distance={8}
+														startColor={darkShadow}
+														offset={[2, 2]}
+														stretch
+														style={styles.shadowWrapper}
+													>
+														<LinearGradient
+															colors={gradientColors}
+															start={{ x: 0, y: 0 }}
+															end={{ x: 1, y: 1 }}
+															style={[
+																styles.dropdownGradientWrapper,
+																{ borderRadius: btnRadius },
+															]}
+														>
+															<Dropdown
+																style={[
+																	styles.dropdownContainer,
+																	{ backgroundColor: 'transparent', borderWidth: 0 },
+																]}
+																activeColor={colors.gradientStart}
+																placeholderStyle={styles.dropdownPlaceholder}
+																selectedTextStyle={styles.dropdownSelectedText}
+																iconStyle={styles.dropdownIcon}
+																maxHeight={300}
+																itemTextStyle={styles.dropdownItemText}
+																itemContainerStyle={styles.dropdownItemContainer}
+																containerStyle={styles.dropdownListContainer}
+																data={filteredSubCategories}
+																labelField="label"
+																valueField="value"
+																placeholder={
+																	categoriesLoading
+																		? 'Завантаження...'
+																		: 'Вибрати підкатегорію'
+																}
+																value={transaction.category}
+																onFocus={handleCategorySelectPress}
+																onChange={(item) => {
+																	setTransaction({
+																		...transaction,
+																		category: item.value,
+																	});
+																}}
+															/>
+														</LinearGradient>
+													</Shadow>
 												</Shadow>
-											</Shadow>
-										</View>
+											</View>
+										) : (
+											<Typo
+												color={colors.neutral400}
+												size={14}
+												style={{ marginTop: 10, marginLeft: 7 }}
+											>
+												У цій групі ще немає категорій. Додати?
+											</Typo>
+										)}
+
+										<TouchableOpacity
+											style={styles.flexRow}
+											onPress={() => router.push('/(modals)/categoriesModal')}
+										>
+											<Icons.PlusCircle
+												weight="fill"
+												color={colors.primaryLight}
+												size={verticalScale(33)}
+											/>
+											<Typo color={colors.neutral500} size={16}>
+												Додати підкатегорію витрат
+											</Typo>
+										</TouchableOpacity>
 									</View>
 								)}
 							</View>
 						)}
 
 						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Дата
 							</Typo>
 
 							{!showDatePicker && (
-								<View
-									style={[
-										styles.baseBackground,
-										{ borderRadius: btnRadius },
-									]}
-								>
+								<View style={[styles.baseBackground, { borderRadius: btnRadius }]}>
 									<Shadow
 										distance={10}
 										startColor={'rgba(0, 0, 0, 0.8)'}
@@ -487,21 +438,14 @@ const TransactionModal = () => {
 												colors={concavedGradientColors}
 												start={{ x: 0.5, y: 0 }}
 												end={{ x: 0.5, y: 1 }}
-												style={[
-													styles.containerDate,
-													{ borderRadius: btnRadius },
-												]}
+												style={[styles.containerDate, { borderRadius: btnRadius }]}
 											>
 												<Pressable
 													style={styles.dateInput}
-													onPress={() =>
-														setShowDatePicker(true)
-													}
+													onPress={() => setShowDatePicker(true)}
 												>
 													<Typo size={14}>
-														{(
-															transaction.date as Date
-														).toLocaleDateString()}
+														{(transaction.date as Date).toLocaleDateString()}
 													</Typo>
 												</Pressable>
 											</LinearGradient>
@@ -511,12 +455,7 @@ const TransactionModal = () => {
 							)}
 
 							{showDatePicker && (
-								<View
-									style={
-										Platform.OS == 'ios' &&
-										styles.iosDatePicker
-									}
-								>
+								<View style={Platform.OS == 'ios' && styles.iosDatePicker}>
 									<DateTimePicker
 										themeVariant="dark"
 										value={transaction.date as Date}
@@ -526,16 +465,8 @@ const TransactionModal = () => {
 										onChange={onDateChange}
 									/>
 									{Platform.OS == 'ios' && (
-										<TouchableOpacity
-											onPress={() =>
-												setShowDatePicker(false)
-											}
-										>
-											<Typo
-												size={15}
-												fontWeight={500}
-												color={colors.primary}
-											>
+										<TouchableOpacity onPress={() => setShowDatePicker(false)}>
+											<Typo size={15} fontWeight={500} color={colors.primary}>
 												Ok
 											</Typo>
 										</TouchableOpacity>
@@ -545,27 +476,18 @@ const TransactionModal = () => {
 						</View>
 
 						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Сума
 							</Typo>
 							<Pressable onPress={() => setShowCalculator(true)}>
 								<View pointerEvents="none">
-									<Input
-										placeholder="0"
-										value={transaction.amount?.toString()}
-										editable={false}
-									/>
+									<Input placeholder="0" value={transaction.amount?.toString()} editable={false} />
 								</View>
 							</Pressable>
 						</View>
 
-						<View
-							style={[
-								styles.inputContainer,
-								{ marginBottom: 30 },
-							]}
-						>
-							<Typo color={colors.neutral200} size={16}>
+						<View style={[styles.inputContainer, { marginBottom: 30 }]}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Опис
 							</Typo>
 							<Input
@@ -583,27 +505,12 @@ const TransactionModal = () => {
 
 				<View style={styles.footer}>
 					{oldTransaction?.id && (
-						<Button
-							style={{ marginRight: 5 }}
-							onPress={showDeleteAlert}
-						>
-							<Icons.Trash
-								color={colors.rose}
-								size={verticalScale(24)}
-								weight="bold"
-							/>
+						<Button style={{ marginRight: 5 }} onPress={showDeleteAlert}>
+							<Icons.Trash color={colors.rose} size={verticalScale(24)} weight="bold" />
 						</Button>
 					)}
-					<Button
-						onPress={onSubmit}
-						loading={loading}
-						style={{ flex: 1 }}
-					>
-						<Typo
-							fontWeight={'700'}
-							color={colors.primaryLight}
-							size={21}
-						>
+					<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
+						<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
 							{oldTransaction?.id ? 'Оновити' : 'Створити'}
 						</Typo>
 					</Button>
@@ -613,9 +520,7 @@ const TransactionModal = () => {
 					isVisible={showCalculator}
 					initialValue={transaction.amount?.toString() || ''}
 					onClose={(val) => {
-						const numericValue = Number(
-							val.replace(/[^0-9.]/g, ''),
-						);
+						const numericValue = Number(val.replace(/[^0-9.]/g, ''));
 						setTransaction({
 							...transaction,
 							amount: numericValue,
@@ -636,18 +541,30 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		paddingHorizontal: spacingY._20,
 	},
+	form: {
+		gap: spacingY._20,
+		marginTop: spacingY._15,
+	},
+	inputContainer: {
+		gap: spacingY._10,
+	},
 	typeContainer: {
 		flexDirection: 'row',
-		gap: scale(12),
-		paddingHorizontal: spacingX._10,
-		marginTop: spacingX._10,
+		gap: scale(8),
+		paddingHorizontal: 5,
 	},
 	shadowWrapper: {
 		alignSelf: 'stretch',
 	},
+
+	dropdownGradientWrapper: {
+		overflow: 'hidden',
+		height: 56,
+		justifyContent: 'center',
+	},
 	dropdownShadowHolder: {
-		marginHorizontal: spacingX._10,
-		marginTop: spacingY._10,
+		paddingHorizontal: 8,
+		paddingVertical: 5,
 	},
 	dropdownContainer: {
 		height: verticalScale(54),
@@ -689,6 +606,13 @@ const styles = StyleSheet.create({
 		shadowRadius: 15,
 		elevation: 5,
 	},
+
+	flexRow: {
+		flexDirection: 'row',
+		gap: 15,
+		alignItems: 'center',
+		marginTop: 10,
+	},
 	innerShadowWrapper: {
 		overflow: 'hidden',
 		borderWidth: 1,
@@ -709,10 +633,6 @@ const styles = StyleSheet.create({
 		borderTopColor: colors.neutral700,
 		borderTopWidth: 1,
 		marginBottom: spacingY._60,
-	},
-	form: {
-		gap: spacingY._30,
-		marginTop: spacingY._15,
 	},
 	avatarContainer: {
 		position: 'relative',
@@ -739,9 +659,6 @@ const styles = StyleSheet.create({
 		shadowRadius: 10,
 		elevation: 4,
 		padding: spacingY._7,
-	},
-	inputContainer: {
-		gap: spacingY._10,
 	},
 	baseBackground: {
 		alignSelf: 'stretch',

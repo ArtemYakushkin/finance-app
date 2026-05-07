@@ -1,87 +1,115 @@
 import Header from '@/components/Header';
-import Loading from '@/components/Loading';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
-import { categoryGroups, expenseCategories } from '@/constants/data';
+import { categoryGroups } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
-import { fetchMonthStats, fetchWeekStats, fetchYearStats } from '@/services/transactionService';
-import { TransactionType } from '@/types';
+import { fetchCategories, fetchMonthStats, fetchYearStats } from '@/services/transactionService';
+import { CategoryType, TransactionType } from '@/types';
 import { getCurrencySymbol } from '@/utils/common';
 import { scale, verticalScale } from '@/utils/styling';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { useFocusEffect } from 'expo-router';
+import { CaretLeft, CaretRight } from 'phosphor-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PieChart } from 'react-native-gifted-charts';
 import { Shadow } from 'react-native-shadow-2';
 
 const Statistics = () => {
 	const { user } = useAuth();
-	const [activeIndex, setActiveIndex] = useState(0);
-	const [chartData, setChartData] = useState([]);
-	const [chartLoading, setChartLoading] = useState(false);
-	const [transactions, setTransactions] = useState([]);
+	const [userCategories, setUserCategories] = useState<CategoryType[]>([]);
+	const [activeIndex, setActiveIndex] = useState(1);
+	const [selectedDate, setSelectedDate] = useState(new Date());
+	const [loading, setLoading] = useState(false);
+	const [data, setData] = useState<{ stats: any[]; transactions: TransactionType[] }>({
+		stats: [],
+		transactions: [],
+	});
 
 	const currencySymbol = getCurrencySymbol(user?.currency);
-
-	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
 	const lightShadow = 'rgba(65, 71, 85, 0.5)';
 	const darkShadow = colors.gradientEnd;
 	const btnRadius = radius._17;
 
+	useFocusEffect(
+		useCallback(() => {
+			loadData();
+		}, [activeIndex, selectedDate, user?.uid]),
+	);
+
 	useEffect(() => {
+		loadData();
+	}, [activeIndex, selectedDate, user?.uid]);
+
+	useEffect(() => {
+		if (user?.uid) {
+			loadUserCategories();
+		}
+	}, [user?.uid]);
+
+	const loadUserCategories = async () => {
 		if (!user?.uid) return;
-
-		if (activeIndex == 0) getWeekStats();
-		if (activeIndex == 1) getMonthStats();
-		if (activeIndex == 2) getYearStats();
-	}, [activeIndex, user?.uid]);
-
-	const getWeekStats = async () => {
-		setChartLoading(true);
-		let res = await fetchWeekStats(user?.uid as string);
+		const res = await fetchCategories(user.uid);
 		if (res.success) {
-			setTransactions(res?.data?.transactions || []);
-			setChartData(res?.data?.stats || []);
-		} else {
-			Alert.alert('Error', res.msg);
+			setUserCategories(res.data as CategoryType[]);
 		}
-		setChartLoading(false);
 	};
 
-	const getMonthStats = async () => {
-		setChartLoading(true);
-		let res = await fetchMonthStats(user?.uid as string);
-		if (res.success) {
-			setTransactions(res?.data?.transactions || []);
-			setChartData(res?.data?.stats || []);
-		} else {
-			Alert.alert('Error', res.msg);
+	const loadData = async () => {
+		if (!user?.uid) return;
+		setLoading(true);
+		try {
+			let res;
+			if (activeIndex === 0) {
+				res = await fetchMonthStats(user.uid, selectedDate);
+			} else {
+				res = await fetchYearStats(user.uid, selectedDate);
+			}
+
+			if (res?.success) {
+				setData({
+					stats: res.data.stats,
+					transactions: res.data.transactions || [],
+				});
+			}
+		} catch (error) {
+			console.error('Error loading stats:', error);
+		} finally {
+			setLoading(false);
 		}
-		setChartLoading(false);
 	};
 
-	const getYearStats = async () => {
-		setChartLoading(true);
-		let res = await fetchYearStats(user?.uid as string);
-		if (res.success) {
-			setTransactions(res?.data?.transactions || []);
-			setChartData(res?.data?.stats || []);
+	const handleMoveDate = (step: number) => {
+		const newDate = new Date(selectedDate);
+		if (activeIndex === 0) {
+			newDate.setMonth(selectedDate.getMonth() + step);
 		} else {
-			Alert.alert('Error', res.msg);
+			newDate.setFullYear(selectedDate.getFullYear() + step);
 		}
-		setChartLoading(false);
+		setSelectedDate(newDate);
+	};
+
+	const getPeriodText = () => {
+		if (activeIndex === 0) {
+			return selectedDate.toLocaleDateString('uk-UA', { month: 'long', year: 'numeric' });
+		}
+		return selectedDate.getFullYear().toString();
 	};
 
 	const getPieChartData = () => {
 		let totals = { needs: 0, desires: 0, saving: 0 };
+		const transactions = data.transactions || [];
 
 		transactions.forEach((item: TransactionType) => {
 			if (item.type === 'expense') {
-				if (expenseCategories.needs.some((c) => c.value === item.category)) totals.needs += item.amount;
-				else if (expenseCategories.desires.some((c) => c.value === item.category))
-					totals.desires += item.amount;
-				else if (expenseCategories.saving.some((c) => c.value === item.category)) totals.saving += item.amount;
+				const amount = Number(item.amount) || 0;
+				const foundCat = userCategories.find((c) => c.name === item.category);
+				const group = item.categoryGroup || foundCat?.group;
+
+				if (group === 'needs') totals.needs += amount;
+				else if (group === 'desires') totals.desires += amount;
+				else if (group === 'saving') totals.saving += amount;
 			}
 		});
 
@@ -89,24 +117,19 @@ const Statistics = () => {
 		if (totalExpense === 0) return [];
 
 		return [
-			{
-				value: totals.needs,
-				color: '#4a90e2',
-				text: 'База',
-			},
+			{ value: totals.needs, color: '#4a90e2', text: 'База', focused: true },
 			{ value: totals.desires, color: '#ef4444', text: 'Хочу' },
 			{ value: totals.saving, color: '#a3e635', text: 'Резерв' },
-		];
+		].filter((i) => i.value > 0);
 	};
 
-	const pieData = getPieChartData();
-
 	const getSubCategoryData = () => {
+		const transactions = data.transactions || [];
 		const grouped = transactions.reduce(
-			(acc, item: TransactionType) => {
+			(acc, item) => {
 				if (item.type === 'expense') {
 					const cat = item.category || 'Інше';
-					acc[cat] = (acc[cat] || 0) + Number(item.amount);
+					acc[cat] = (acc[cat] || 0) + (Number(item.amount) || 0);
 				}
 				return acc;
 			},
@@ -115,34 +138,21 @@ const Statistics = () => {
 
 		return Object.keys(grouped)
 			.map((catName) => {
-				let groupKey = '';
-				let categoryLabel = catName; // По умолчанию, если не найдем перевод
-
-				// 1. Ищем категорию во всех группах, чтобы достать её Label
-				for (const key in expenseCategories) {
-					const found = expenseCategories[key as keyof typeof expenseCategories].find(
-						(c) => c.value === catName,
-					);
-					if (found) {
-						groupKey = key;
-						categoryLabel = found.label; // Берем украинское название
-						break;
-					}
-				}
-
-				// 2. Достаем иконку и цвет из основной группы (как и раньше)
+				const userCat = userCategories.find((c) => c.name === catName);
+				const groupKey = userCat?.group || transactions.find((t) => t.category === catName)?.categoryGroup;
 				const mainGroup = categoryGroups.find((g) => g.value === groupKey);
 
 				return {
-					name: categoryLabel, // Теперь здесь будет украинский текст
+					name: catName,
 					amount: grouped[catName],
-					icon: mainGroup?.icon,
+					icon: mainGroup?.icon || userCat?.icon,
 					color: mainGroup?.color || colors.neutral500,
 				};
 			})
 			.sort((a, b) => b.amount - a.amount);
 	};
 
+	const pieData = getPieChartData();
 	const subCategories = getSubCategoryData();
 
 	return (
@@ -168,7 +178,7 @@ const Statistics = () => {
 								style={styles.shadowWrapper}
 							>
 								<View style={[styles.segmentedInner, { backgroundColor: colors.gradientMid }]}>
-									{['Неділя', 'Місяць', 'Рік'].map((label, index) => (
+									{['Місяць', 'Рік'].map((label, index) => (
 										<TouchableOpacity
 											key={label}
 											style={styles.segmentBtn}
@@ -188,60 +198,16 @@ const Statistics = () => {
 						</Shadow>
 					</View>
 
-					<View style={styles.chartWrapper}>
-						<Shadow
-							distance={6}
-							startColor={lightShadow}
-							offset={[-1, -1]}
-							stretch
-							containerStyle={{ borderRadius: btnRadius }}
-							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
-						>
-							<Shadow
-								distance={8}
-								startColor={darkShadow}
-								offset={[3, 3]}
-								stretch
-								style={styles.shadowWrapper}
-							>
-								<LinearGradient
-									colors={[colors.gradientStart, colors.gradientMid]}
-									style={styles.chartInner}
-								>
-									{chartData.length > 0 ? (
-										<BarChart
-											data={chartData}
-											barWidth={scale(14)}
-											spacing={scale(22)}
-											roundedTop
-											roundedBottom
-											hideRules
-											showGradient
-											yAxisThickness={0}
-											xAxisThickness={0}
-											yAxisLabelPrefix="$"
-											yAxisTextStyle={styles.axisText}
-											xAxisLabelTextStyle={{
-												...styles.axisText,
-												marginBottom: verticalScale(8),
-											}}
-											initialSpacing={scale(20)}
-											endSpacing={scale(20)}
-											noOfSections={3}
-										/>
-									) : (
-										<View style={styles.noDataContainer}>
-											{!chartLoading && <Text style={styles.inactiveText}>Немає інформації</Text>}
-										</View>
-									)}
-									{chartLoading && (
-										<View style={styles.chartLoadingOverlay}>
-											<Loading />
-										</View>
-									)}
-								</LinearGradient>
-							</Shadow>
-						</Shadow>
+					<View style={styles.dateNavigation}>
+						<TouchableOpacity onPress={() => handleMoveDate(-1)}>
+							<CaretLeft size={verticalScale(22)} color={colors.neutral200} weight="bold" />
+						</TouchableOpacity>
+						<Typo size={16} fontWeight={'600'} style={{ textTransform: 'capitalize' }}>
+							{getPeriodText()}
+						</Typo>
+						<TouchableOpacity onPress={() => handleMoveDate(1)}>
+							<CaretRight size={verticalScale(22)} color={colors.neutral200} weight="bold" />
+						</TouchableOpacity>
 					</View>
 
 					<View style={styles.chartWrapper}>
@@ -267,48 +233,33 @@ const Statistics = () => {
 									<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
 										Розподіл витрат
 									</Typo>
-
 									{pieData.length > 0 ? (
 										<View style={styles.pieContainer}>
 											<PieChart
 												data={pieData}
 												donut
 												showGradient
-												sectionAutoFocus
 												radius={100}
 												innerRadius={70}
 												innerCircleColor={colors.gradientMid}
-												centerLabelComponent={() => {
-													return (
-														<View
-															style={{
-																justifyContent: 'center',
-																alignItems: 'center',
-															}}
-														>
-															<Typo size={14} color={colors.neutral400}>
-																Всього
-															</Typo>
-															<Typo size={18} fontWeight={'700'}>
-																{currencySymbol}
-																{pieData.reduce((acc, cur) => acc + cur.value, 0)}
-															</Typo>
-														</View>
-													);
-												}}
+												centerLabelComponent={() => (
+													<View style={{ alignItems: 'center' }}>
+														<Typo size={12} color={colors.neutral400}>
+															Всього
+														</Typo>
+														<Typo size={16} fontWeight={'700'}>
+															{currencySymbol}
+															{pieData
+																.reduce((acc, cur) => acc + cur.value, 0)
+																.toLocaleString()}
+														</Typo>
+													</View>
+												)}
 											/>
-
 											<View style={styles.legendContainer}>
-												{pieData.map((item, index) => (
-													<View key={index} style={styles.legendItem}>
-														<View
-															style={[
-																styles.dot,
-																{
-																	backgroundColor: item.color,
-																},
-															]}
-														/>
+												{pieData.map((item, idx) => (
+													<View key={idx} style={styles.legendItem}>
+														<View style={[styles.dot, { backgroundColor: item.color }]} />
 														<Typo size={13} color={colors.neutral300}>
 															{item.text}
 														</Typo>
@@ -326,7 +277,7 @@ const Statistics = () => {
 										</View>
 									) : (
 										<View style={styles.noDataContainer}>
-											<Typo color={colors.neutral400}>Немає даних для діаграми</Typo>
+											<Typo color={colors.neutral400}>Немає даних</Typo>
 										</View>
 									)}
 								</LinearGradient>
@@ -335,62 +286,55 @@ const Statistics = () => {
 					</View>
 
 					<View style={{ gap: spacingY._15, paddingHorizontal: 10 }}>
-						<Typo size={18} fontWeight={'600'} style={{ marginBottom: 5, textAlign: 'center' }}>
-							Деталі за категоріями
+						<Typo size={18} fontWeight={'600'} style={{ textAlign: 'center' }}>
+							Деталі
 						</Typo>
-
-						{subCategories.length > 0 ? (
-							subCategories.map((item, index) => {
-								const IconComponent = item.icon;
-								return (
+						{subCategories.map((item, index) => {
+							const IconComponent = item.icon;
+							return (
+								<Shadow
+									key={index}
+									distance={6}
+									startColor={lightShadow}
+									offset={[-1, -1]}
+									stretch
+									containerStyle={{ borderRadius: btnRadius }}
+									style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+								>
 									<Shadow
-										key={index}
-										distance={6}
-										startColor={lightShadow}
-										offset={[-1, -1]}
+										distance={8}
+										startColor={darkShadow}
+										offset={[3, 3]}
 										stretch
-										containerStyle={{ borderRadius: btnRadius }}
-										style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+										style={styles.shadowWrapper}
 									>
-										<Shadow
-											distance={8}
-											startColor={darkShadow}
-											offset={[3, 3]}
-											stretch
-											style={styles.shadowWrapper}
+										<LinearGradient
+											colors={[colors.gradientStart, colors.gradientMid]}
+											style={styles.categoryCard}
 										>
-											<LinearGradient
-												colors={[colors.gradientStart, colors.gradientMid]}
-												style={styles.categoryCard}
-											>
-												<View style={styles.categoryInfo}>
-													<View style={[styles.iconWrapper, { backgroundColor: item.color }]}>
-														{IconComponent && (
-															<IconComponent
-																size={verticalScale(20)}
-																weight="fill"
-																color={colors.white}
-															/>
-														)}
-													</View>
-													<Typo size={16} fontWeight={'500'}>
-														{item.name}
-													</Typo>
+											<View style={styles.categoryInfo}>
+												<View style={[styles.iconWrapper, { backgroundColor: item.color }]}>
+													{IconComponent && (
+														<IconComponent
+															size={verticalScale(20)}
+															weight="fill"
+															color={colors.white}
+														/>
+													)}
 												</View>
-												<Typo size={16} fontWeight={'700'}>
-													{currencySymbol}
-													{item.amount.toLocaleString()}
+												<Typo size={16} fontWeight={'500'}>
+													{item.name}
 												</Typo>
-											</LinearGradient>
-										</Shadow>
+											</View>
+											<Typo size={16} fontWeight={'700'}>
+												{currencySymbol}
+												{item.amount.toLocaleString()}
+											</Typo>
+										</LinearGradient>
 									</Shadow>
-								);
-							})
-						) : (
-							<Typo color={colors.neutral400} style={{ textAlign: 'center' }}>
-								Немає витрат для відображення
-							</Typo>
-						)}
+								</Shadow>
+							);
+						})}
 					</View>
 				</ScrollView>
 			</View>
@@ -402,18 +346,9 @@ export default Statistics;
 
 const styles = StyleSheet.create({
 	container: { flex: 1, paddingHorizontal: spacingX._20 },
-	scrollContent: {
-		gap: spacingY._30,
-		paddingTop: spacingY._10,
-		paddingBottom: verticalScale(30),
-	},
+	scrollContent: { gap: spacingY._30, paddingTop: spacingY._10, paddingBottom: verticalScale(30) },
 	segmentedWrapper: { paddingHorizontal: 10 },
-	segmentedInner: {
-		flexDirection: 'row',
-		height: verticalScale(46),
-		borderRadius: radius._15,
-		padding: 4,
-	},
+	segmentedInner: { flexDirection: 'row', height: verticalScale(46), borderRadius: radius._15, padding: 4 },
 	segmentBtn: { flex: 1, justifyContent: 'center' },
 	activeSegment: {
 		flex: 1,
@@ -422,15 +357,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	activeText: {
-		color: colors.white,
-		fontWeight: '700',
-		fontSize: verticalScale(13),
-	},
-	inactiveText: {
-		color: colors.neutral400,
-		textAlign: 'center',
-		fontSize: verticalScale(13),
+	activeText: { color: colors.white, fontWeight: '700', fontSize: verticalScale(13) },
+	inactiveText: { color: colors.neutral400, textAlign: 'center', fontSize: verticalScale(13) },
+	dateNavigation: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		paddingHorizontal: 20,
 	},
 	chartWrapper: { paddingHorizontal: 10 },
 	chartInner: {
@@ -450,62 +383,35 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		borderRadius: radius._20,
 	},
-	noDataContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	shadowWrapper: {
-		alignSelf: 'stretch',
-	},
+	noDataContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 100 },
+	shadowWrapper: { alignSelf: 'stretch' },
 	pieInner: {
-		padding: spacingX._10,
+		padding: spacingX._15,
 		borderRadius: radius._20,
 		minHeight: verticalScale(200),
 		borderWidth: 1,
 		borderColor: 'rgba(255,255,255,0.05)',
 		alignItems: 'center',
 	},
-	pieContainer: {
-		alignItems: 'center',
-		gap: 10,
-	},
-	legendContainer: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'center',
-		gap: 12,
-	},
-	legendItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-	},
-	dot: {
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-	},
+	pieContainer: { alignItems: 'center', gap: 15, width: '100%' },
+	legendContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
+	legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+	dot: { width: 8, height: 8, borderRadius: 4 },
 	categoryCard: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		padding: spacingX._10,
+		padding: spacingX._12,
 		borderRadius: radius._15,
 		borderWidth: 1,
 		borderColor: 'rgba(255,255,255,0.05)',
 	},
-	categoryInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: spacingX._12,
-	},
+	categoryInfo: { flexDirection: 'row', alignItems: 'center', gap: spacingX._12 },
 	iconWrapper: {
 		width: verticalScale(40),
 		height: verticalScale(40),
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: 'rgba(255,255,255,0.03)',
 		borderRadius: radius._10,
 	},
 });

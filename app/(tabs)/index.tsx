@@ -3,9 +3,10 @@ import HomeCard from '@/components/HomeCard';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import TransactionList from '@/components/TransactionList';
 import Typo from '@/components/Typo';
-import { colors, spacingX, spacingY } from '@/constants/theme';
+import { colors, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
+import { globalStyles } from '@/styles/global';
 import { TransactionType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { useRouter } from 'expo-router';
@@ -18,11 +19,7 @@ const Home = () => {
 	const { user } = useAuth();
 	const router = useRouter();
 
-	const constrains = [
-		where('uid', '==', user?.uid),
-		orderBy('date', 'desc'),
-		limit(30),
-	];
+	const constrains = [where('uid', '==', user?.uid), orderBy('date', 'desc'), limit(30)];
 
 	const {
 		data: recentTransactions,
@@ -32,8 +29,8 @@ const Home = () => {
 
 	return (
 		<ScreenWrapper>
-			<View style={styles.container}>
-				<View style={styles.header}>
+			<View style={[globalStyles.container, { marginTop: verticalScale(8) }]}>
+				<View style={globalStyles.header}>
 					<View style={{ gap: 4 }}>
 						<Typo size={16} color={colors.neutral400}>
 							Привіт,
@@ -45,39 +42,26 @@ const Home = () => {
 
 					<TouchableOpacity
 						onPress={() => router.push('/(modals)/searchModal')}
-						style={styles.searchIcon}
+						style={globalStyles.searchIcon}
 					>
-						<Icons.MagnifyingGlass
-							size={verticalScale(27)}
-							color={colors.neutral200}
-							weight="bold"
-						/>
+						<Icons.MagnifyingGlass size={verticalScale(27)} color={colors.neutral200} weight="bold" />
 					</TouchableOpacity>
 				</View>
 
-				<ScrollView
-					contentContainerStyle={styles.scrollViewStyle}
-					showsVerticalScrollIndicator={false}
-				>
+				<ScrollView contentContainerStyle={globalStyles.scrollViewStyle} showsVerticalScrollIndicator={false}>
 					<View>
 						<HomeCard />
 					</View>
 					<TransactionList
 						data={recentTransactions}
 						loading={transactionsLoading}
-						emptyListMessage="No transactions added yet!"
+						filterByMonth={true}
+						emptyListMessage="В цьому місяці ще немає тразакцій"
 					/>
 				</ScrollView>
 
-				<Button
-					style={styles.floatingButton}
-					onPress={() => router.push('/(modals)/transactionModal')}
-				>
-					<Icons.Plus
-						color={colors.primaryLight}
-						weight="bold"
-						size={verticalScale(24)}
-					/>
+				<Button style={globalStyles.addButton} onPress={() => router.push('/(modals)/transactionModal')}>
+					<Icons.Plus color={colors.primaryLight} weight="bold" size={verticalScale(24)} />
 				</Button>
 			</View>
 		</ScreenWrapper>
@@ -85,37 +69,3 @@ const Home = () => {
 };
 
 export default Home;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		paddingHorizontal: spacingX._20,
-		marginTop: verticalScale(8),
-	},
-	header: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: spacingY._10,
-	},
-	searchIcon: {
-		backgroundColor: colors.gradientStart,
-		padding: spacingX._10,
-		borderRadius: 50,
-		borderColor: colors.neutral200,
-		borderWidth: 1,
-	},
-	scrollViewStyle: {
-		marginTop: spacingY._10,
-		paddingBottom: verticalScale(100),
-		gap: spacingY._25,
-	},
-	floatingButton: {
-		height: verticalScale(50),
-		width: verticalScale(50),
-		borderRadius: 100,
-		position: 'absolute',
-		bottom: verticalScale(30),
-		right: verticalScale(20),
-	},
-});

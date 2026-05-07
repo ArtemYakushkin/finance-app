@@ -3,11 +3,7 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import TransactionList from '@/components/TransactionList';
-import {
-	categoryGroups,
-	expenseCategories,
-	incomeCategory,
-} from '@/constants/data';
+import { categoryGroups, expenseCategories, incomeCategory } from '@/constants/data';
 import { spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
@@ -31,19 +27,6 @@ const SearchModal = () => {
 		loading: transactionsLoading,
 	} = useFetchData<TransactionType>('transactions', constrains);
 
-	// const filteredTransactions = allTransactions.filter((item) => {
-	// 	if (search.length > 1) {
-	// 		if (
-	// 			item.category?.toLowerCase()?.includes(search?.toLowerCase()) ||
-	// 			item.type?.toLowerCase()?.includes(search?.toLowerCase()) ||
-	// 			item.description?.toLowerCase()?.includes(search?.toLowerCase())
-	// 		) {
-	// 			return true;
-	// 		}
-	// 		return false;
-	// 	}
-	// 	return true;
-	// });
 	const filteredTransactions = allTransactions.filter((item) => {
 		if (search.length > 1) {
 			const searchLower = search.toLowerCase();
@@ -55,22 +38,16 @@ const SearchModal = () => {
 				Object.values(expenseCategories)
 					.flat()
 					.forEach((cat) => {
-						if (cat.value === item.category)
-							ukrCategory = cat.label.toLowerCase();
+						if (cat.value === item.category) ukrCategory = cat.label.toLowerCase();
 					});
 			}
 
 			let ukrGroup = '';
 			if (item.type !== 'income') {
 				const groupKey = Object.keys(expenseCategories).find((key) =>
-					expenseCategories[
-						key as keyof typeof expenseCategories
-					].some((c) => c.value === item.category),
+					expenseCategories[key as keyof typeof expenseCategories].some((c) => c.value === item.category),
 				);
-				ukrGroup =
-					categoryGroups
-						.find((g) => g.value === groupKey)
-						?.label.toLowerCase() || '';
+				ukrGroup = categoryGroups.find((g) => g.value === groupKey)?.label.toLowerCase() || '';
 			}
 
 			const ukrType = item.type === 'income' ? 'дохід' : 'витрати';
@@ -88,24 +65,17 @@ const SearchModal = () => {
 	return (
 		<ModalWrapper>
 			<View style={styles.container}>
-				<Header
-					title={'Пошук'}
-					leftIcon={<BackButton />}
-					style={{ marginBottom: spacingY._10 }}
-				/>
+				<Header title={'Пошук'} leftIcon={<BackButton />} style={{ marginBottom: spacingY._10 }} />
 				<ScrollView contentContainerStyle={styles.form}>
 					<View style={styles.inputContainer}>
-						<Input
-							placeholder="Знайти..."
-							value={search}
-							onChangeText={(value) => setSearch(value)}
-						/>
+						<Input placeholder="Знайти..." value={search} onChangeText={(value) => setSearch(value)} />
 					</View>
 
 					<View>
 						<TransactionList
 							data={filteredTransactions}
 							loading={transactionsLoading}
+							filterByMonth={false}
 							emptyListMessage="Немає транзакцій, що відповідають вашим ключовим словам пошуку"
 						/>
 					</View>

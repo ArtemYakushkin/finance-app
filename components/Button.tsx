@@ -7,30 +7,15 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 import Loading from './Loading';
 
-const Button = ({
-	style,
-	onPress,
-	loading = false,
-	children,
-}: CustomButtonProps) => {
+const Button = ({ style, onPress, loading = false, children }: CustomButtonProps) => {
 	const btnRadius = radius._17;
-
-	const gradientColors: [string, string, ...string[]] = [
-		colors.gradientStart,
-		colors.gradientMid,
-	];
+	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
 	const lightShadow = 'rgba(65, 71, 85, 0.5)';
 	const darkShadow = colors.gradientEnd;
 
 	if (loading) {
 		return (
-			<View
-				style={[
-					styles.button,
-					style,
-					{ backgroundColor: 'transparent' },
-				]}
-			>
+			<View style={[styles.button, style, { backgroundColor: 'transparent' }]}>
 				<Loading />
 			</View>
 		);
@@ -46,13 +31,7 @@ const Button = ({
 				containerStyle={{ borderRadius: btnRadius }}
 				style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
 			>
-				<Shadow
-					distance={8}
-					startColor={darkShadow}
-					offset={[3, 3]}
-					stretch
-					style={styles.shadowWrapper}
-				>
+				<Shadow distance={8} startColor={darkShadow} offset={[2, 2]} stretch style={styles.shadowWrapper}>
 					<TouchableOpacity
 						onPress={onPress}
 						activeOpacity={0.9}

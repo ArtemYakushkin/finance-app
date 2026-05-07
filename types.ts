@@ -70,6 +70,8 @@ export type TransactionType = {
 };
 
 export type CategoryType = {
+	name: string;
+	group: 'needs' | 'desires' | 'saving';
 	label: string;
 	value: string;
 	icon: Icon;
@@ -84,6 +86,7 @@ export type TransactionListType = {
 	title?: string;
 	loading?: boolean;
 	emptyListMessage?: string;
+	filterByMonth?: boolean;
 };
 
 export type TransactionItemProps = {
@@ -123,6 +126,7 @@ export type UserType = {
 	name: string | null;
 	image?: any;
 	currency?: string;
+	startOfMonth?: number;
 } | null;
 
 export type UserDataType = {

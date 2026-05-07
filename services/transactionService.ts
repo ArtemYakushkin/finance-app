@@ -1,7 +1,6 @@
 import { firestore } from '@/config/firebase';
 import { colors } from '@/constants/theme';
 import { ResponseType, TransactionType, WalletType } from '@/types';
-import { getLast12Months, getLast7Days, getYearsRange } from '@/utils/common';
 import { scale } from '@/utils/styling';
 import {
 	collection,
@@ -17,9 +16,7 @@ import {
 	where,
 } from 'firebase/firestore';
 
-export const createOrUpdateTransaction = async (
-	transactionData: Partial<TransactionType>,
-): Promise<ResponseType> => {
+export const createOrUpdateTransaction = async (transactionData: Partial<TransactionType>): Promise<ResponseType> => {
 	try {
 		const { id, type, walletId, amount } = transactionData;
 
@@ -28,11 +25,8 @@ export const createOrUpdateTransaction = async (
 		}
 
 		if (id) {
-			const oldTransactionSnapshot = await getDoc(
-				doc(firestore, 'transactions', id),
-			);
-			const oldTransaction =
-				oldTransactionSnapshot.data() as TransactionType;
+			const oldTransactionSnapshot = await getDoc(doc(firestore, 'transactions', id));
+			const oldTransaction = oldTransactionSnapshot.data() as TransactionType;
 
 			const shouldRevertOriginal =
 				oldTransaction.type !== type ||
@@ -40,26 +34,15 @@ export const createOrUpdateTransaction = async (
 				oldTransaction.walletId !== walletId;
 
 			if (shouldRevertOriginal) {
-				const res = await revertAndUpdateWallets(
-					oldTransaction,
-					Number(amount),
-					type,
-					walletId,
-				);
+				const res = await revertAndUpdateWallets(oldTransaction, Number(amount), type, walletId);
 				if (!res.success) return res;
 			}
 		} else {
-			const res = await updateWalletForNewTransaction(
-				walletId!,
-				Number(amount),
-				type,
-			);
+			const res = await updateWalletForNewTransaction(walletId!, Number(amount), type);
 			if (!res.success) return res;
 		}
 
-		const transactionRef = id
-			? doc(firestore, 'transactions', id)
-			: doc(collection(firestore, 'transactions'));
+		const transactionRef = id ? doc(firestore, 'transactions', id) : doc(collection(firestore, 'transactions'));
 
 		await setDoc(transactionRef, transactionData, { merge: true });
 
@@ -73,11 +56,7 @@ export const createOrUpdateTransaction = async (
 	}
 };
 
-export const updateWalletForNewTransaction = async (
-	walletId: string,
-	amount: number,
-	type: string,
-) => {
+export const updateWalletForNewTransaction = async (walletId: string, amount: number, type: string) => {
 	try {
 		const walletRef = doc(firestore, 'wallets', walletId);
 		const walletSnapshot = await getDoc(walletRef);
@@ -97,9 +76,7 @@ export const updateWalletForNewTransaction = async (
 
 		const updatedType = type === 'income' ? 'totalIncome' : 'totalExpenses';
 		const updatedWalletAmount =
-			type === 'income'
-				? Number(walletData.amount || 0) + amount
-				: Number(walletData.amount || 0) - amount;
+			type === 'income' ? Number(walletData.amount || 0) + amount : Number(walletData.amount || 0) - amount;
 
 		const updatedTotals = Number(walletData[updatedType] || 0) + amount;
 
@@ -122,27 +99,18 @@ const revertAndUpdateWallets = async (
 	newWalletId: string,
 ) => {
 	try {
-		const originalWalletRef = doc(
-			firestore,
-			'wallets',
-			oldTransaction.walletId,
-		);
+		const originalWalletRef = doc(firestore, 'wallets', oldTransaction.walletId);
 		const originalWalletSnapshot = await getDoc(originalWalletRef);
 		const originalWallet = originalWalletSnapshot.data() as WalletType;
 
-		const revertType =
-			oldTransaction.type === 'income' ? 'totalIncome' : 'totalExpenses';
+		const revertType = oldTransaction.type === 'income' ? 'totalIncome' : 'totalExpenses';
 
 		const revertedBalance =
 			oldTransaction.type === 'income'
-				? Number(originalWallet.amount || 0) -
-					Number(oldTransaction.amount)
-				: Number(originalWallet.amount || 0) +
-					Number(oldTransaction.amount);
+				? Number(originalWallet.amount || 0) - Number(oldTransaction.amount)
+				: Number(originalWallet.amount || 0) + Number(oldTransaction.amount);
 
-		const revertedTotal =
-			Number(originalWallet[revertType] || 0) -
-			Number(oldTransaction.amount);
+		const revertedTotal = Number(originalWallet[revertType] || 0) - Number(oldTransaction.amount);
 
 		await updateDoc(originalWalletRef, {
 			amount: revertedBalance,
@@ -153,26 +121,21 @@ const revertAndUpdateWallets = async (
 		const newWalletSnapshot = await getDoc(newWalletRef);
 		const newWallet = newWalletSnapshot.data() as WalletType;
 
-		if (
-			newTransactionType === 'expense' &&
-			(newWallet.amount || 0) < newTransactionAmount
-		) {
+		if (newTransactionType === 'expense' && (newWallet.amount || 0) < newTransactionAmount) {
 			return {
 				success: false,
 				msg: 'Вибраний гаманець не має достатнього балансу',
 			};
 		}
 
-		const updateType =
-			newTransactionType === 'income' ? 'totalIncome' : 'totalExpenses';
+		const updateType = newTransactionType === 'income' ? 'totalIncome' : 'totalExpenses';
 
 		const finalBalance =
 			newTransactionType === 'income'
 				? Number(newWallet.amount || 0) + newTransactionAmount
 				: Number(newWallet.amount || 0) - newTransactionAmount;
 
-		const finalTotal =
-			Number(newWallet[updateType] || 0) + newTransactionAmount;
+		const finalTotal = Number(newWallet[updateType] || 0) + newTransactionAmount;
 
 		await updateDoc(newWalletRef, {
 			amount: finalBalance,
@@ -186,10 +149,7 @@ const revertAndUpdateWallets = async (
 	}
 };
 
-export const deleteTransaction = async (
-	transactionId: string,
-	walletId: string,
-) => {
+export const deleteTransaction = async (transactionId: string, walletId: string) => {
 	try {
 		const transactionRef = doc(firestore, 'transactions', transactionId);
 		const transactionSnapshot = await getDoc(transactionRef);
@@ -211,16 +171,14 @@ export const deleteTransaction = async (
 
 		const walletData = walletSnapshot.data() as WalletType;
 
-		const updateType =
-			transactionType === 'income' ? 'totalIncome' : 'totalExpenses';
+		const updateType = transactionType === 'income' ? 'totalIncome' : 'totalExpenses';
 
 		const newWalletAmount =
 			transactionType === 'income'
 				? Number(walletData.amount || 0) - transactionAmount
 				: Number(walletData.amount || 0) + transactionAmount;
 
-		const newTotalAmount =
-			Number(walletData[updateType] || 0) - transactionAmount;
+		const newTotalAmount = Number(walletData[updateType] || 0) - transactionAmount;
 
 		if (transactionType === 'income' && newWalletAmount < 0) {
 			return {
@@ -243,88 +201,53 @@ export const deleteTransaction = async (
 	}
 };
 
-export const fetchWeekStats = async (uid: string): Promise<ResponseType> => {
+export const fetchMonthStats = async (uid: string, selectedDate: Date): Promise<ResponseType> => {
 	try {
 		const db = firestore;
-		const today = new Date();
-		const sevenDaysAgo = new Date(today);
-		sevenDaysAgo.setDate(today.getDate() - 7);
+		const year = selectedDate.getFullYear();
+		const month = selectedDate.getMonth();
+
+		const startOfMonth = new Date(year, month, 1);
+		const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
 
 		const transactionsQuery = query(
 			collection(db, 'transactions'),
-			where('date', '>=', Timestamp.fromDate(sevenDaysAgo)),
-			where('date', '<=', Timestamp.fromDate(today)),
-			orderBy('date', 'desc'),
 			where('uid', '==', uid),
+			where('date', '>=', Timestamp.fromDate(startOfMonth)),
+			where('date', '<=', Timestamp.fromDate(endOfMonth)),
+			orderBy('date', 'desc'),
 		);
 
 		const querySnapshot = await getDocs(transactionsQuery);
-		const weeklyData = getLast7Days();
+
+		const monthsOfYear = [
+			'Січ',
+			'Лют',
+			'Бер',
+			'Квіт',
+			'Трав',
+			'Черв',
+			'Лип',
+			'Серп',
+			'Вер',
+			'Жовт',
+			'Лист',
+			'Груд',
+		];
+
+		// ЯВНАЯ ТИПИЗАЦИЯ МАССИВА
+		const monthlyData: { month: string; key: string; income: number; expense: number }[] = [];
+
+		for (let i = 0; i < 12; i++) {
+			monthlyData.push({
+				month: `${monthsOfYear[i]} ${year.toString().slice(-2)}`,
+				key: `${year}-${i}`,
+				income: 0,
+				expense: 0,
+			});
+		}
+
 		const transactions: TransactionType[] = [];
-
-		querySnapshot.forEach((doc) => {
-			const transaction = doc.data() as TransactionType;
-			transaction.id = doc.id;
-			transactions.push(transaction);
-
-			const transactionDate = (transaction.date as Timestamp)
-				.toDate()
-				.toISOString()
-				.split('T')[0];
-
-			const dayData = weeklyData.find(
-				(day) => day.date == transactionDate,
-			);
-
-			if (dayData) {
-				if (transaction.type == 'income') {
-					dayData.income += transaction.amount;
-				} else if (transaction.type == 'expense') {
-					dayData.expense += transaction.amount;
-				}
-			}
-		});
-
-		const stats = weeklyData.flatMap((day) => [
-			{
-				value: day.income,
-				label: day.day,
-				spacing: scale(4),
-				labelWidth: scale(30),
-				frontColor: colors.primaryLight,
-			},
-			{
-				value: day.expense,
-				frontColor: colors.rose,
-			},
-		]);
-
-		return { success: true, data: { stats, transactions } };
-	} catch (error: any) {
-		console.error('Error fetching weekly stats:', error);
-		return { success: false, msg: error.message };
-	}
-};
-
-export const fetchMonthStats = async (uid: string): Promise<ResponseType> => {
-	try {
-		const db = firestore;
-		const today = new Date();
-		const twelveMonthAgo = new Date(today);
-		twelveMonthAgo.setMonth(today.getMonth() - 12);
-
-		const transactionsQuery = query(
-			collection(db, 'transactions'),
-			where('date', '>=', Timestamp.fromDate(twelveMonthAgo)),
-			where('date', '<=', Timestamp.fromDate(today)),
-			orderBy('date', 'desc'),
-			where('uid', '==', uid),
-		);
-
-		const querySnapshot = await getDocs(transactionsQuery);
-		const monthlyData = getLast12Months();
-		const transactions: TransactionType[] = [];
-
 		querySnapshot.forEach((doc) => {
 			const transaction = doc.data() as TransactionType;
 			transaction.id = doc.id;
@@ -332,103 +255,101 @@ export const fetchMonthStats = async (uid: string): Promise<ResponseType> => {
 
 			const date = (transaction.date as Timestamp).toDate();
 			const transactionKey = `${date.getFullYear()}-${date.getMonth()}`;
-
-			const monthData = monthlyData.find((m) => {
-				return m.key === transactionKey;
-			});
+			const monthData = monthlyData.find((m) => m.key === transactionKey);
 
 			if (monthData) {
-				if (transaction.type === 'income') {
-					monthData.income += Number(transaction.amount);
-				} else {
-					monthData.expense += Number(transaction.amount);
-				}
+				if (transaction.type === 'income') monthData.income += Number(transaction.amount);
+				else monthData.expense += Number(transaction.amount);
 			}
 		});
 
-		const stats = monthlyData.flatMap((month) => [
-			{
-				value: month.income,
-				label: month.month,
-				spacing: scale(4),
-				labelWidth: scale(46),
-				frontColor: colors.primaryLight,
-			},
-			{
-				value: month.expense,
-				frontColor: colors.rose,
-			},
-		]);
+		const stats = monthlyData
+			.filter((m) => m.income > 0 || m.expense > 0 || m.key === `${year}-${month}`)
+			.flatMap((month) => [
+				{
+					value: month.income,
+					label: month.month,
+					spacing: scale(4),
+					labelWidth: scale(46),
+					frontColor: colors.primaryLight,
+				},
+				{ value: month.expense, frontColor: colors.rose },
+			]);
 
 		return { success: true, data: { stats, transactions } };
 	} catch (error: any) {
-		console.error('Error fetching monthly stats:', error);
 		return { success: false, msg: error.message };
 	}
 };
 
-export const fetchYearStats = async (uid: string): Promise<ResponseType> => {
+export const fetchYearStats = async (uid: string, selectedDate: Date): Promise<ResponseType> => {
 	try {
 		const db = firestore;
+		const year = selectedDate.getFullYear();
+		const startOfYear = new Date(year, 0, 1);
+		const endOfYear = new Date(year, 11, 31, 23, 59, 59);
 
 		const transactionsQuery = query(
 			collection(db, 'transactions'),
-			orderBy('date', 'desc'),
 			where('uid', '==', uid),
+			where('date', '>=', Timestamp.fromDate(startOfYear)),
+			where('date', '<=', Timestamp.fromDate(endOfYear)),
+			orderBy('date', 'desc'),
 		);
 
 		const querySnapshot = await getDocs(transactionsQuery);
 		const transactions: TransactionType[] = [];
 
-		const firstTransaction = querySnapshot.docs.reduce((earliest, doc) => {
-			const transactionDate = doc.data().date.toDate();
-			return transactionDate < earliest ? transactionDate : earliest;
-		}, new Date());
-
-		const firstYear = firstTransaction.getFullYear();
-		const currentYear = new Date().getFullYear();
-
-		const yearlyData = getYearsRange(firstYear, currentYear);
+		// Группируем по годам (можно расширить диапазон, если нужно сравнение)
+		const yearlyData = [
+			{
+				year: year.toString(),
+				income: 0,
+				expense: 0,
+			},
+		];
 
 		querySnapshot.forEach((doc) => {
 			const transaction = doc.data() as TransactionType;
 			transaction.id = doc.id;
 			transactions.push(transaction);
 
-			const transactionYear = (transaction.date as Timestamp)
-				.toDate()
-				.getFullYear();
-
-			const yearData = yearlyData.find(
-				(item: any) => item.year === transactionYear.toString(),
-			);
-
-			if (yearData) {
-				if (transaction.type === 'income') {
-					yearData.income += Number(transaction.amount);
-				} else {
-					yearData.expense += Number(transaction.amount);
-				}
-			}
+			if (transaction.type === 'income') yearlyData[0].income += Number(transaction.amount);
+			else yearlyData[0].expense += Number(transaction.amount);
 		});
 
-		const stats = yearlyData.flatMap((year: any) => [
+		const stats = yearlyData.flatMap((y) => [
 			{
-				value: year.income,
-				label: year.year,
+				value: y.income,
+				label: y.year,
 				spacing: scale(4),
 				labelWidth: scale(46),
 				frontColor: colors.primaryLight,
 			},
-			{
-				value: year.expense,
-				frontColor: colors.rose,
-			},
+			{ value: y.expense, frontColor: colors.rose },
 		]);
 
 		return { success: true, data: { stats, transactions } };
 	} catch (error: any) {
-		console.error('Error fetching yearly stats:', error);
+		return { success: false, msg: error.message };
+	}
+};
+
+export const fetchCategories = async (uid: string) => {
+	try {
+		const categoriesRef = collection(firestore, 'categories');
+
+		const q = query(categoriesRef, where('uid', '==', uid));
+		const querySnapshot = await getDocs(q);
+
+		let categories: any[] = [];
+		querySnapshot.forEach((doc) => {
+			categories.push({ id: doc.id, ...doc.data() });
+		});
+
+		return { success: true, data: categories };
+	} catch (error: any) {
+		console.error('Error fetching categories: ', error);
 		return { success: false, msg: error.message };
 	}
 };

@@ -1,4 +1,4 @@
-import { categoryGroups, expenseCategories, incomeCategory } from '@/constants/data';
+import { categoryGroups, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import { TransactionItemProps, TransactionListType, TransactionType } from '@/types';
@@ -13,8 +13,18 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Loading from './Loading';
 import Typo from './Typo';
 
-const TransactionList = ({ data, title, loading, emptyListMessage }: TransactionListType) => {
+const TransactionList = ({ data, title, loading, emptyListMessage, filterByMonth = false }: TransactionListType) => {
 	const router = useRouter();
+
+	const finalData = filterByMonth
+		? data.filter((item) => {
+				const transactionDate = (item.date as Timestamp)?.toDate();
+				const now = new Date();
+				return (
+					transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear()
+				);
+			})
+		: data;
 
 	const handleClick = (item: TransactionType) => {
 		router.push({
@@ -42,14 +52,14 @@ const TransactionList = ({ data, title, loading, emptyListMessage }: Transaction
 
 			<View style={styles.list}>
 				<FlashList
-					data={data}
+					data={finalData}
 					renderItem={({ item, index }) => (
 						<TransactionItem item={item} index={index} handleClick={handleClick} />
 					)}
 				/>
 			</View>
 
-			{!loading && data.length == 0 && (
+			{!loading && finalData.length == 0 && (
 				<Typo size={15} color={colors.neutral400} style={{ textAlign: 'center', marginTop: spacingY._15 }}>
 					{emptyListMessage}
 				</Typo>
@@ -71,37 +81,19 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 	const getCategoryInfo = () => {
 		if (item?.type === 'income') return { groupLabel: 'Дохід', data: incomeCategory };
 
-		// 1. Находим, к какой группе относится подкатегория транзакции
-		let groupKey = '';
-		let subCategory: any = null;
-
-		for (const key in expenseCategories) {
-			const found = expenseCategories[key as keyof typeof expenseCategories].find(
-				(cat) => cat.value === item.category,
-			);
-
-			if (found) {
-				groupKey = key;
-				subCategory = found;
-				break;
-			}
-		}
-
-		// 2. Находим данные основной группы (иконку и основной цвет)
-		const mainGroup = categoryGroups.find((g) => g.value === groupKey);
+		const mainGroup = categoryGroups.find((g) => g.value === item.categoryGroup);
 
 		if (mainGroup) {
 			return {
 				groupLabel: mainGroup.label,
 				data: {
-					label: subCategory?.label || item.category,
-					icon: mainGroup.icon, // БЕРЕМ ИКОНКУ ГРУППЫ (HouseLine, Star, PiggyBank)
-					bgColor: mainGroup.color, // БЕРЕМ ЦВЕТ ГРУППЫ
+					label: item.category,
+					icon: mainGroup.icon,
+					bgColor: mainGroup.color,
 				},
 			};
 		}
 
-		// Фоллбек, если ничего не найдено
 		return {
 			groupLabel: 'Інше',
 			data: {
