@@ -2,24 +2,24 @@ import Header from '@/components/Header';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { auth } from '@/config/firebase';
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { SHADOW_AVATAR, SHADOW_OPTIONS } from '@/constants/shadow';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import { getProfileImage } from '@/services/imageService';
+import { globalStyles } from '@/styles/global';
 import { accountOptionType } from '@/types';
-import { verticalScale } from '@/utils/styling';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Shadow } from 'react-native-shadow-2';
 
 const Profile = () => {
 	const { user } = useAuth();
 	const router = useRouter();
-	const bgColor = '#171717';
 
 	const accountOptions: accountOptionType[] = [
 		{
@@ -77,32 +77,22 @@ const Profile = () => {
 
 	return (
 		<ScreenWrapper>
-			<View style={styles.container}>
-				<Header title="Профіль" style={{ marginVertical: spacingY._10 }} />
+			<View style={globalStyles.container}>
+				<Header title="Профіль" />
 
-				<View style={styles.userInfo}>
-					<Shadow
-						distance={15}
-						startColor={'rgba(255, 255, 255, 0.08)'}
-						offset={[-3, -3]}
-						style={{ borderRadius: 200 }}
-					>
-						<Shadow
-							distance={18}
-							startColor={'rgba(5, 7, 10, 0.7)'} // Глубокий сине-черный цвет для тени
-							offset={[5, 5]}
-							style={{ borderRadius: 200 }}
-						>
+				<View style={globalStyles.profileInfo}>
+					<Shadow {...SHADOW_AVATAR.light} style={{ borderRadius: 200 }}>
+						<Shadow {...SHADOW_AVATAR.dark} style={{ borderRadius: 200 }}>
 							<Image
 								source={getProfileImage(user?.image)}
-								style={styles.avatar}
+								style={globalStyles.profileAvatar}
 								contentFit="cover"
 								transition={100}
 							/>
 						</Shadow>
 					</Shadow>
 
-					<View style={styles.nameContainer}>
+					<View style={globalStyles.profileNameContainer}>
 						<Typo size={24} fontWeight={'600'} color={colors.neutral100}>
 							{user?.name}
 						</Typo>
@@ -112,42 +102,22 @@ const Profile = () => {
 					</View>
 				</View>
 
-				<View style={styles.accountOptionsWrapper}>
-					<Shadow
-						distance={10}
-						startColor={'rgba(60, 75, 100, 0.12)'}
-						offset={[-3, -3]}
-						stretch
-						style={{ borderRadius: radius._20 }}
-					>
-						<Shadow
-							distance={12}
-							startColor={'rgba(0, 0, 0, 0.8)'}
-							offset={[5, 5]}
-							stretch
-							style={{ borderRadius: radius._20 }}
-						>
-							<View
-								style={[
-									styles.optionsContent,
-									{
-										backgroundColor: '#171921',
-										borderColor: 'rgba(255, 255, 255, 0.03)',
-									},
-								]}
-							>
+				<View style={{ paddingHorizontal: 10 }}>
+					<Shadow {...SHADOW_OPTIONS.light} style={{ borderRadius: 20 }}>
+						<Shadow {...SHADOW_OPTIONS.dark} style={{ borderRadius: 20 }}>
+							<View style={globalStyles.profileOptions}>
 								{accountOptions.map((item, index) => {
 									const isLast = index === accountOptions.length - 1;
 									return (
 										<Animated.View entering={FadeInDown.delay(index * 50).springify()} key={index}>
 											<TouchableOpacity
-												style={styles.optionRow}
+												style={globalStyles.profileOptionsItem}
 												activeOpacity={0.6}
 												onPress={() => handlePress(item)}
 											>
 												<View
 													style={[
-														styles.listIcon,
+														globalStyles.profileOptionsIcon,
 														{
 															backgroundColor: item.bgColor,
 														},
@@ -158,14 +128,10 @@ const Profile = () => {
 												<Typo size={16} fontWeight={'500'} style={{ flex: 1 }}>
 													{item.title}
 												</Typo>
-												<Icons.CaretRight
-													size={verticalScale(18)}
-													weight="bold"
-													color={colors.neutral500}
-												/>
+												<Icons.CaretRight size={18} weight="bold" color={colors.neutral500} />
 											</TouchableOpacity>
 
-											{!isLast && <View style={styles.separator} />}
+											{!isLast && <View style={globalStyles.profileOptionsSeparator} />}
 										</Animated.View>
 									);
 								})}
@@ -179,54 +145,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		paddingHorizontal: spacingX._20,
-	},
-	userInfo: {
-		marginTop: verticalScale(30),
-		alignItems: 'center',
-		gap: verticalScale(15),
-	},
-	avatar: {
-		height: verticalScale(135),
-		width: verticalScale(135),
-		borderRadius: 200,
-		borderWidth: 1.5,
-		borderColor: 'rgba(255, 255, 255, 0.05)',
-	},
-	nameContainer: {
-		gap: verticalScale(4),
-		alignItems: 'center',
-		marginTop: verticalScale(5),
-	},
-	accountOptionsWrapper: {
-		marginTop: verticalScale(40),
-	},
-	optionsContent: {
-		borderRadius: radius._20,
-		paddingHorizontal: spacingX._15,
-		borderWidth: 1,
-		borderColor: '#1B1B1B',
-	},
-	optionRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: spacingX._15,
-		paddingVertical: verticalScale(12),
-	},
-	listIcon: {
-		height: verticalScale(40),
-		width: verticalScale(40),
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: radius._12,
-	},
-	separator: {
-		height: 0.5,
-		backgroundColor: 'rgba(255, 255, 255, 0.06)',
-		marginHorizontal: spacingX._5,
-	},
-});

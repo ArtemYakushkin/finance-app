@@ -1,8 +1,8 @@
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
+import { globalStyles } from '@/styles/global';
 import { WalletType } from '@/types';
 import { getCurrencySymbol } from '@/utils/common';
-import { verticalScale } from '@/utils/styling';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { Router } from 'expo-router';
@@ -27,18 +27,18 @@ const WalletItem = ({ item, index, router }: { item: WalletType; index: number; 
 	return (
 		<Animated.View entering={FadeInDown.delay(index * 200).springify()}>
 			<Pressable onPress={openWallet}>
-				<BlurView intensity={25} tint="dark" style={styles.container}>
-					<View style={styles.imageContainer}>
+				<BlurView intensity={25} tint="dark" style={globalStyles.walletItem}>
+					<View style={globalStyles.walletImage}>
 						<Image style={{ flex: 1 }} source={item?.image} contentFit="cover" transition={100} />
 					</View>
-					<View style={styles.nameContainer}>
+					<View style={globalStyles.walletName}>
 						<Typo size={16}>{item?.name}</Typo>
 						<Typo size={14} color={colors.neutral400}>
 							{currencySymbol}
 							{item?.amount}
 						</Typo>
 					</View>
-					<Icons.CaretRight size={verticalScale(20)} weight="bold" color={colors.white} />
+					<Icons.CaretRight size={20} weight="bold" color={colors.white} />
 				</BlurView>
 			</Pressable>
 		</Animated.View>
@@ -47,26 +47,4 @@ const WalletItem = ({ item, index, router }: { item: WalletType; index: number; 
 
 export default WalletItem;
 
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: verticalScale(17),
-		padding: spacingY._12,
-		backgroundColor: 'rgba(41, 46, 58, 0.07)',
-		borderRadius: radius._17,
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
-	},
-	imageContainer: {
-		height: verticalScale(45),
-		width: verticalScale(45),
-		overflow: 'hidden',
-	},
-	nameContainer: {
-		flex: 1,
-		gap: 2,
-		marginLeft: spacingX._10,
-	},
-});
+const styles = StyleSheet.create({});

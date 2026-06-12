@@ -5,15 +5,15 @@ import ImageUpload from '@/components/ImageUpload';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { colors, spacingY } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import { createOrUpdateWallet, deleteWallet } from '@/services/walletService';
+import { globalStyles } from '@/styles/global';
 import { WalletType } from '@/types';
-import { scale, verticalScale } from '@/utils/styling';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Icons from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 
 const WalletModal = () => {
 	const { user } = useAuth();
@@ -24,8 +24,7 @@ const WalletModal = () => {
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
-	const oldWallet: { name: string; image: string; id: string } =
-		useLocalSearchParams();
+	const oldWallet: { name: string; image: string; id: string } = useLocalSearchParams();
 
 	useEffect(() => {
 		if (oldWallet?.id) {
@@ -97,65 +96,42 @@ const WalletModal = () => {
 
 	return (
 		<ModalWrapper>
-			<View style={styles.container}>
-				<Header
-					title={
-						oldWallet?.id ? 'Оновити гаманець' : 'Новий гаманець'
-					}
-					leftIcon={<BackButton />}
-					style={{ marginBottom: spacingY._10 }}
-				/>
-				<ScrollView contentContainerStyle={styles.form}>
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200}>Назва гаманця</Typo>
+			<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+				<Header title={oldWallet?.id ? 'Оновити гаманець' : 'Новий гаманець'} leftIcon={<BackButton />} />
+				<ScrollView contentContainerStyle={globalStyles.modalForm}>
+					<View style={{ gap: 10, paddingHorizontal: 5 }}>
+						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+							Назва гаманця
+						</Typo>
 						<Input
 							placeholder="Назва гаманця"
 							value={wallet.name}
-							onChangeText={(value) =>
-								setWallet({ ...wallet, name: value })
-							}
+							onChangeText={(value) => setWallet({ ...wallet, name: value })}
 						/>
 					</View>
 
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200}>Значок гаманця</Typo>
+					<View style={{ gap: 10, paddingHorizontal: 5 }}>
+						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+							Значок гаманця
+						</Typo>
 						<ImageUpload
 							file={wallet.image}
-							onSelect={(file) =>
-								setWallet({ ...wallet, image: file })
-							}
-							onClear={() =>
-								setWallet({ ...wallet, image: null })
-							}
+							onSelect={(file) => setWallet({ ...wallet, image: file })}
+							onClear={() => setWallet({ ...wallet, image: null })}
 							placeholder="Завантажити зображення"
 						/>
 					</View>
 				</ScrollView>
 			</View>
 
-			<View style={styles.footer}>
+			<View style={globalStyles.modalFooter}>
 				{oldWallet?.id && (
-					<Button
-						style={{ marginRight: 5 }}
-						onPress={showDeleteAlert}
-					>
-						<Icons.Trash
-							color={colors.rose}
-							size={verticalScale(24)}
-							weight="bold"
-						/>
+					<Button style={{ marginRight: 5 }} onPress={showDeleteAlert}>
+						<Icons.Trash color={colors.rose} size={24} weight="bold" />
 					</Button>
 				)}
-				<Button
-					onPress={onSubmit}
-					loading={loading}
-					style={{ flex: 1 }}
-				>
-					<Typo
-						fontWeight={'700'}
-						color={colors.primaryLight}
-						size={21}
-					>
+				<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
+					<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
 						{oldWallet?.id ? 'Оновити' : 'Додати'}
 					</Typo>
 				</Button>
@@ -165,55 +141,3 @@ const WalletModal = () => {
 };
 
 export default WalletModal;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-		paddingHorizontal: spacingY._20,
-	},
-	footer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-		paddingHorizontal: spacingY._20,
-		gap: scale(24),
-		paddingTop: spacingY._15,
-		borderTopColor: colors.neutral700,
-		borderTopWidth: 1,
-		marginBottom: spacingY._60,
-	},
-	form: {
-		gap: spacingY._30,
-		marginTop: spacingY._15,
-	},
-	avatarContainer: {
-		position: 'relative',
-		alignSelf: 'center',
-	},
-	avatar: {
-		alignSelf: 'center',
-		backgroundColor: colors.neutral300,
-		height: verticalScale(135),
-		width: verticalScale(135),
-		borderRadius: 200,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	editIcon: {
-		position: 'absolute',
-		bottom: spacingY._5,
-		right: spacingY._7,
-		borderRadius: 100,
-		backgroundColor: colors.neutral300,
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 0 },
-		shadowOpacity: 0.25,
-		shadowRadius: 10,
-		elevation: 4,
-		padding: spacingY._7,
-	},
-	inputContainer: {
-		gap: spacingY._10,
-	},
-});

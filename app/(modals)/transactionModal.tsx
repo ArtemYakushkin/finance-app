@@ -6,28 +6,21 @@ import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
 import { categoryGroups, expenseCategories, transactionTypes } from '@/constants/data';
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { BUTTON_GRADIENT, INPUT_GRADIENT } from '@/constants/gradient';
+import { SHADOW_DROPDOWN, SHADOW_INPUT } from '@/constants/shadow';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
 import { createOrUpdateTransaction, deleteTransaction } from '@/services/transactionService';
+import { globalStyles } from '@/styles/global';
 import { TransactionType, WalletType } from '@/types';
-import { scale, verticalScale } from '@/utils/styling';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
-import React, { useEffect, useState } from 'react';
-import {
-	Alert,
-	KeyboardAvoidingView,
-	Platform,
-	Pressable,
-	ScrollView,
-	StyleSheet,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Shadow } from 'react-native-shadow-2';
 
@@ -48,12 +41,6 @@ const TransactionModal = () => {
 	const [showCalculator, setShowCalculator] = useState(false);
 	const router = useRouter();
 
-	const btnRadius = radius._17;
-	const lightShadow = 'rgba(65, 71, 85, 0.5)';
-	const darkShadow = colors.gradientEnd;
-	const concavedGradientColors: [string, string] = [colors.gradientMid as string, colors.gradientEnd as string];
-	const gradientColors: [string, string, ...string[]] = [colors.gradientStart, colors.gradientMid];
-
 	const { data: userCategories, loading: categoriesLoading } = useFetchData<any>(
 		'categories',
 		user?.uid ? [where('uid', '==', user?.uid)] : [],
@@ -68,12 +55,10 @@ const TransactionModal = () => {
 		user?.uid ? [where('uid', '==', user?.uid), orderBy('created', 'desc')] : [],
 	);
 
-	// 2. Фильтруем категории по выбранной группе (для выпадающего списка)
 	const filteredSubCategories = userCategories
 		.filter((cat) => cat.group === selectedGroup && cat.type === transaction.type)
 		.map((cat) => ({ label: cat.name, value: cat.name }));
 
-	// 3. Эффект для автоматического открытия модалки создания категорий
 	const handleCategorySelectPress = () => {
 		if (filteredSubCategories.length === 0) {
 			// Если подкатегорий в этой группе нет, сразу отправляем на создание
@@ -155,7 +140,6 @@ const TransactionModal = () => {
 			return;
 		}
 
-		// Находим группу категории из загруженных данных
 		const categoryData = userCategories.find((c) => c.name === category);
 		const categoryGroup = categoryData ? categoryData.group : type === 'income' ? 'income' : 'other';
 
@@ -182,26 +166,25 @@ const TransactionModal = () => {
 	return (
 		<ModalWrapper>
 			<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-				<View style={styles.container}>
+				<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
 					<Header
 						title={oldTransaction?.id ? 'Оновити транзакцію' : 'Нова транзакція'}
 						leftIcon={<BackButton />}
-						style={{ marginBottom: spacingY._10 }}
 					/>
+
 					<ScrollView
-						contentContainerStyle={styles.form}
+						contentContainerStyle={globalStyles.modalForm}
 						showsVerticalScrollIndicator={false}
 						keyboardShouldPersistTaps="handled"
 					>
-						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+						<View style={{ gap: 10 }}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 								Тип
 							</Typo>
-							<View style={styles.typeContainer}>
+							<View style={globalStyles.modalBtnWrap}>
 								{transactionTypes.map((item) => {
 									const isActive = transaction.type === item.value;
 									const activeTextColor = item.value === 'income' ? colors.primary : colors.rose;
-
 									return (
 										<Button
 											key={item.value}
@@ -226,51 +209,53 @@ const TransactionModal = () => {
 							</View>
 						</View>
 
-						<View style={styles.inputContainer}>
-							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+						<View style={{ gap: 10 }}>
+							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 								Гаманець
 							</Typo>
-							<View style={styles.dropdownShadowHolder}>
-								<Shadow
-									distance={6}
-									startColor={lightShadow}
-									offset={[-1, -1]}
-									stretch
-									containerStyle={{ borderRadius: btnRadius }}
-									style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
-								>
-									<Shadow
-										distance={8}
-										startColor={darkShadow}
-										offset={[2, 2]}
-										stretch
-										style={styles.shadowWrapper}
-									>
+							<View style={globalStyles.modalDropdownShadowHolder}>
+								<Shadow {...SHADOW_DROPDOWN.light} style={{ borderRadius: 17, alignSelf: 'stretch' }}>
+									<Shadow {...SHADOW_DROPDOWN.dark} style={{ alignSelf: 'stretch' }}>
 										<LinearGradient
-											colors={gradientColors}
-											start={{ x: 0, y: 0 }}
-											end={{ x: 1, y: 1 }}
-											style={[styles.dropdownGradientWrapper, { borderRadius: btnRadius }]}
+											{...(BUTTON_GRADIENT as any)}
+											style={{
+												borderRadius: 17,
+												overflow: 'hidden',
+												height: 56,
+												justifyContent: 'center',
+											}}
 										>
 											<Dropdown
 												style={[
-													styles.dropdownContainer,
+													globalStyles.modalDropdownContainer,
 													{ backgroundColor: 'transparent', borderWidth: 0 },
 												]}
 												activeColor={colors.gradientStart}
-												placeholderStyle={styles.dropdownPlaceholder}
-												selectedTextStyle={styles.dropdownSelectedText}
-												iconStyle={styles.dropdownIcon}
+												placeholderStyle={{ color: colors.white }}
+												selectedTextStyle={{ color: colors.white, fontSize: 14 }}
+												iconStyle={{ height: 30, tintColor: colors.neutral300 }}
+												maxHeight={300}
+												itemTextStyle={{ color: colors.white }}
+												itemContainerStyle={{ borderRadius: 15, marginHorizontal: 7 }}
+												containerStyle={{
+													backgroundColor: colors.gradientEnd,
+													borderRadius: 15,
+													borderCurve: 'continuous',
+													paddingVertical: 7,
+													top: 5,
+													borderColor: colors.gradientStart,
+													shadowColor: colors.black,
+													shadowOffset: { width: 0, height: 5 },
+													shadowOpacity: 1,
+													shadowRadius: 15,
+													elevation: 5,
+												}}
 												data={wallets.map((wallet) => ({
 													label: `${wallet?.name} ($${wallet?.amount})`,
 													value: wallet?.id,
 												}))}
-												maxHeight={300}
 												labelField="label"
 												valueField="value"
-												itemTextStyle={styles.dropdownItemText}
-												itemContainerStyle={styles.dropdownItemContainer}
-												containerStyle={styles.dropdownListContainer}
 												placeholder={'Вибрати гаманець'}
 												value={transaction.walletId}
 												onChange={(item) => {
@@ -287,11 +272,11 @@ const TransactionModal = () => {
 						</View>
 
 						{transaction.type === 'expense' && (
-							<View style={styles.inputContainer}>
-								<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
+							<View style={{ gap: 10 }}>
+								<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 									Група категорій
 								</Typo>
-								<View style={styles.typeContainer}>
+								<View style={globalStyles.modalBtnWrap}>
 									{categoryGroups.map((group) => {
 										const isActive = selectedGroup === group.value;
 										return (
@@ -316,54 +301,62 @@ const TransactionModal = () => {
 								</View>
 
 								{selectedGroup && (
-									<View style={styles.inputContainer}>
+									<View style={{ gap: 10 }}>
 										<Typo
 											color={colors.neutral200}
 											size={16}
-											style={{ paddingLeft: 5, marginTop: 10 }}
+											style={{ paddingLeft: 10, marginTop: 10 }}
 										>
 											Підкатегорія
 										</Typo>
 
 										{filteredSubCategories.length > 0 ? (
-											<View style={styles.dropdownShadowHolder}>
+											<View style={globalStyles.modalDropdownShadowHolder}>
 												<Shadow
-													distance={6}
-													startColor={lightShadow}
-													offset={[-1, -1]}
-													stretch
-													containerStyle={{ borderRadius: btnRadius }}
-													style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+													{...SHADOW_DROPDOWN.light}
+													style={{ borderRadius: 17, alignSelf: 'stretch' }}
 												>
-													<Shadow
-														distance={8}
-														startColor={darkShadow}
-														offset={[2, 2]}
-														stretch
-														style={styles.shadowWrapper}
-													>
+													<Shadow {...SHADOW_DROPDOWN.dark} style={{ alignSelf: 'stretch' }}>
 														<LinearGradient
-															colors={gradientColors}
-															start={{ x: 0, y: 0 }}
-															end={{ x: 1, y: 1 }}
-															style={[
-																styles.dropdownGradientWrapper,
-																{ borderRadius: btnRadius },
-															]}
+															{...(BUTTON_GRADIENT as any)}
+															style={{
+																borderRadius: 17,
+																overflow: 'hidden',
+																height: 56,
+																justifyContent: 'center',
+															}}
 														>
 															<Dropdown
 																style={[
-																	styles.dropdownContainer,
+																	globalStyles.modalDropdownContainer,
 																	{ backgroundColor: 'transparent', borderWidth: 0 },
 																]}
 																activeColor={colors.gradientStart}
-																placeholderStyle={styles.dropdownPlaceholder}
-																selectedTextStyle={styles.dropdownSelectedText}
-																iconStyle={styles.dropdownIcon}
+																placeholderStyle={{ color: colors.white }}
+																selectedTextStyle={{
+																	color: colors.white,
+																	fontSize: 14,
+																}}
+																iconStyle={{ height: 30, tintColor: colors.neutral300 }}
 																maxHeight={300}
-																itemTextStyle={styles.dropdownItemText}
-																itemContainerStyle={styles.dropdownItemContainer}
-																containerStyle={styles.dropdownListContainer}
+																itemTextStyle={{ color: colors.white }}
+																itemContainerStyle={{
+																	borderRadius: 15,
+																	marginHorizontal: 7,
+																}}
+																containerStyle={{
+																	backgroundColor: colors.gradientEnd,
+																	borderRadius: 15,
+																	borderCurve: 'continuous',
+																	paddingVertical: 7,
+																	top: 5,
+																	borderColor: colors.gradientStart,
+																	shadowColor: colors.black,
+																	shadowOffset: { width: 0, height: 5 },
+																	shadowOpacity: 1,
+																	shadowRadius: 15,
+																	elevation: 5,
+																}}
 																data={filteredSubCategories}
 																labelField="label"
 																valueField="value"
@@ -387,23 +380,19 @@ const TransactionModal = () => {
 											</View>
 										) : (
 											<Typo
-												color={colors.neutral400}
+												color={colors.rose}
 												size={14}
-												style={{ marginTop: 10, marginLeft: 7 }}
+												style={{ marginTop: 10, paddingLeft: 10 }}
 											>
 												У цій групі ще немає категорій. Додати?
 											</Typo>
 										)}
 
 										<TouchableOpacity
-											style={styles.flexRow}
+											style={globalStyles.modalAddCategory}
 											onPress={() => router.push('/(modals)/categoriesModal')}
 										>
-											<Icons.PlusCircle
-												weight="fill"
-												color={colors.primaryLight}
-												size={verticalScale(33)}
-											/>
+											<Icons.PlusCircle weight="fill" color={colors.primaryLight} size={33} />
 											<Typo color={colors.neutral500} size={16}>
 												Додати підкатегорію витрат
 											</Typo>
@@ -413,35 +402,18 @@ const TransactionModal = () => {
 							</View>
 						)}
 
-						<View style={styles.inputContainer}>
+						<View style={{ gap: 10, paddingHorizontal: 5 }}>
 							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Дата
 							</Typo>
 
 							{!showDatePicker && (
-								<View style={[styles.baseBackground, { borderRadius: btnRadius }]}>
-									<Shadow
-										distance={10}
-										startColor={'rgba(0, 0, 0, 0.8)'}
-										offset={[3, 3]}
-										stretch
-										style={styles.fullWidth}
-									>
-										<Shadow
-											distance={8}
-											startColor={'rgba(65, 71, 85, 0.4)'}
-											offset={[-3, -3]}
-											stretch
-											style={styles.fullWidth}
-										>
-											<LinearGradient
-												colors={concavedGradientColors}
-												start={{ x: 0.5, y: 0 }}
-												end={{ x: 0.5, y: 1 }}
-												style={[styles.containerDate, { borderRadius: btnRadius }]}
-											>
+								<View style={globalStyles.modalInputContainer}>
+									<Shadow {...SHADOW_INPUT.light} style={{ alignSelf: 'stretch' }}>
+										<Shadow {...SHADOW_INPUT.dark} style={{ alignSelf: 'stretch' }}>
+											<LinearGradient {...INPUT_GRADIENT} style={globalStyles.modalInputInner}>
 												<Pressable
-													style={styles.dateInput}
+													style={globalStyles.modalInput}
 													onPress={() => setShowDatePicker(true)}
 												>
 													<Typo size={14}>
@@ -455,7 +427,7 @@ const TransactionModal = () => {
 							)}
 
 							{showDatePicker && (
-								<View style={Platform.OS == 'ios' && styles.iosDatePicker}>
+								<View>
 									<DateTimePicker
 										themeVariant="dark"
 										value={transaction.date as Date}
@@ -475,7 +447,7 @@ const TransactionModal = () => {
 							)}
 						</View>
 
-						<View style={styles.inputContainer}>
+						<View style={{ gap: 10, paddingHorizontal: 5 }}>
 							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Сума
 							</Typo>
@@ -486,7 +458,7 @@ const TransactionModal = () => {
 							</Pressable>
 						</View>
 
-						<View style={[styles.inputContainer, { marginBottom: 30 }]}>
+						<View style={{ gap: 10, paddingHorizontal: 5, marginBottom: 50 }}>
 							<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 								Опис
 							</Typo>
@@ -503,10 +475,10 @@ const TransactionModal = () => {
 					</ScrollView>
 				</View>
 
-				<View style={styles.footer}>
+				<View style={globalStyles.modalFooter}>
 					{oldTransaction?.id && (
 						<Button style={{ marginRight: 5 }} onPress={showDeleteAlert}>
-							<Icons.Trash color={colors.rose} size={verticalScale(24)} weight="bold" />
+							<Icons.Trash color={colors.rose} size={24} weight="bold" />
 						</Button>
 					)}
 					<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
@@ -534,145 +506,3 @@ const TransactionModal = () => {
 };
 
 export default TransactionModal;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-		paddingHorizontal: spacingY._20,
-	},
-	form: {
-		gap: spacingY._20,
-		marginTop: spacingY._15,
-	},
-	inputContainer: {
-		gap: spacingY._10,
-	},
-	typeContainer: {
-		flexDirection: 'row',
-		gap: scale(8),
-		paddingHorizontal: 5,
-	},
-	shadowWrapper: {
-		alignSelf: 'stretch',
-	},
-
-	dropdownGradientWrapper: {
-		overflow: 'hidden',
-		height: 56,
-		justifyContent: 'center',
-	},
-	dropdownShadowHolder: {
-		paddingHorizontal: 8,
-		paddingVertical: 5,
-	},
-	dropdownContainer: {
-		height: verticalScale(54),
-		borderWidth: 1,
-		paddingHorizontal: spacingX._15,
-		borderCurve: 'continuous',
-		backgroundColor: '#292e3a',
-		borderRadius: radius._17,
-		borderColor: '#1B1B1B',
-	},
-	dropdownPlaceholder: {
-		color: colors.white,
-	},
-	dropdownSelectedText: {
-		color: colors.white,
-		fontSize: verticalScale(14),
-	},
-	dropdownIcon: {
-		height: verticalScale(30),
-		tintColor: colors.neutral300,
-	},
-	dropdownItemText: {
-		color: colors.white,
-	},
-	dropdownItemContainer: {
-		borderRadius: radius._15,
-		marginHorizontal: spacingX._7,
-	},
-	dropdownListContainer: {
-		backgroundColor: colors.gradientEnd,
-		borderRadius: radius._15,
-		borderCurve: 'continuous',
-		paddingVertical: spacingY._7,
-		top: 5,
-		borderColor: colors.gradientStart,
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 5 },
-		shadowOpacity: 1,
-		shadowRadius: 15,
-		elevation: 5,
-	},
-
-	flexRow: {
-		flexDirection: 'row',
-		gap: 15,
-		alignItems: 'center',
-		marginTop: 10,
-	},
-	innerShadowWrapper: {
-		overflow: 'hidden',
-		borderWidth: 1,
-	},
-	dateInput: {
-		height: verticalScale(54),
-		justifyContent: 'center',
-		paddingHorizontal: spacingX._15,
-	},
-	iosDatePicker: {},
-	footer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-		paddingHorizontal: spacingY._20,
-		gap: scale(24),
-		paddingTop: spacingY._15,
-		borderTopColor: colors.neutral700,
-		borderTopWidth: 1,
-		marginBottom: spacingY._60,
-	},
-	avatarContainer: {
-		position: 'relative',
-		alignSelf: 'center',
-	},
-	avatar: {
-		alignSelf: 'center',
-		backgroundColor: colors.neutral300,
-		height: verticalScale(135),
-		width: verticalScale(135),
-		borderRadius: 200,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-	},
-	editIcon: {
-		position: 'absolute',
-		bottom: spacingY._5,
-		right: spacingY._7,
-		borderRadius: 100,
-		backgroundColor: colors.neutral300,
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 0 },
-		shadowOpacity: 0.25,
-		shadowRadius: 10,
-		elevation: 4,
-		padding: spacingY._7,
-	},
-	baseBackground: {
-		alignSelf: 'stretch',
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.03)',
-	},
-	fullWidth: {
-		alignSelf: 'stretch',
-	},
-	containerDate: {
-		flexDirection: 'row',
-		height: verticalScale(54),
-		alignItems: 'center',
-		gap: spacingX._10,
-	},
-});

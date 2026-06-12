@@ -31,7 +31,11 @@
     },
     "plugins": [
       "expo-router",
-      "expo-image"
+      "expo-image",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

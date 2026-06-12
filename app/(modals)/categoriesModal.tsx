@@ -1,14 +1,17 @@
+import BackButton from '@/components/BackButton';
 import Button from '@/components/Button';
+import Header from '@/components/Header';
 import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import Typo from '@/components/Typo';
-import { categoryGroups } from '@/constants/data'; // Берем список групп (Food, Health и т.д.)
-import { colors, spacingX, spacingY } from '@/constants/theme';
+import { categoryGroups } from '@/constants/data';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
-import { createOrUpdateCategory } from '@/services/categoryService'; // Нужно будет создать этот сервис
+import { createOrUpdateCategory } from '@/services/categoryService';
+import { globalStyles } from '@/styles/global';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 
 const CategoriesModal = () => {
 	const { user } = useAuth();
@@ -16,8 +19,8 @@ const CategoriesModal = () => {
 	const [loading, setLoading] = useState(false);
 	const [category, setCategory] = useState({
 		name: '',
-		group: '', // Сюда запишем value из categoryGroups
-		type: 'expense', // По умолчанию расходная категория
+		group: '',
+		type: 'expense',
 	});
 
 	const onSubmit = async () => {
@@ -42,99 +45,62 @@ const CategoriesModal = () => {
 
 	return (
 		<ModalWrapper>
-			<View style={styles.container}>
-				<Typo size={24} fontWeight={'700'} style={{ marginBottom: spacingY._20 }}>
-					Нова категорія
-				</Typo>
+			<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+				<Header title={'Нова категорія'} leftIcon={<BackButton />} />
 
-				<View style={styles.form}>
-					{/* Название категории */}
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
+				<ScrollView
+					contentContainerStyle={globalStyles.modalForm}
+					showsVerticalScrollIndicator={false}
+					keyboardShouldPersistTaps="handled"
+				>
+					<View style={{ gap: 10, paddingHorizontal: 5 }}>
+						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 5 }}>
 							Назва підкатегорії
 						</Typo>
 						<Input
-							placeholder="Наприклад: Овочі або Кіно"
+							placeholder="Наприклад: Продукти або Житло"
 							value={category.name}
 							onChangeText={(value) => setCategory({ ...category, name: value })}
 						/>
 					</View>
 
-					{/* Выбор родительской группы */}
-					<View style={styles.inputContainer}>
-						<Typo color={colors.neutral200} size={16}>
+					<View style={{ gap: 10 }}>
+						<Typo color={colors.neutral200} size={16} style={{ paddingLeft: 10 }}>
 							Виберіть групу
 						</Typo>
-						<View style={styles.groupsGrid}>
+						<View style={globalStyles.modalBtnWrap}>
 							{categoryGroups.map((group) => {
 								const isActive = category.group === group.value;
 								return (
-									<TouchableOpacity
+									<Button
 										key={group.value}
 										onPress={() => setCategory({ ...category, group: group.value })}
-										style={[
-											styles.groupItem,
-											isActive && {
-												borderColor: group.color,
-												backgroundColor: colors.neutral800,
-											},
-										]}
+										style={{ flex: 1 }}
 									>
 										<Typo
-											size={12}
+											size={14}
+											fontWeight={isActive ? '700' : '500'}
 											color={isActive ? group.color : colors.neutral400}
-											fontWeight={isActive ? '700' : '400'}
 										>
 											{group.label}
 										</Typo>
-									</TouchableOpacity>
+									</Button>
 								);
 							})}
 						</View>
 					</View>
-				</View>
+				</ScrollView>
+			</View>
 
-				{/* Кнопка сохранения */}
-				<View style={styles.footer}>
-					<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
-						<Typo color={colors.black} fontWeight={'700'}>
-							Зберегти
-						</Typo>
-					</Button>
-				</View>
+			<View style={globalStyles.modalFooter}>
+				<Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
+					<Typo fontWeight={'700'} color={colors.primaryLight} size={21}>
+						Зберегти
+					</Typo>
+				</Button>
 			</View>
 		</ModalWrapper>
 	);
 };
 
 export default CategoriesModal;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		paddingHorizontal: spacingX._20,
-	},
-	form: {
-		gap: spacingY._20,
-	},
-	inputContainer: {
-		gap: spacingY._10,
-	},
-	groupsGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		gap: 10,
-	},
-	groupItem: {
-		paddingVertical: spacingY._10,
-		paddingHorizontal: spacingX._12,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.neutral700,
-		backgroundColor: colors.neutral900,
-	},
-	footer: {
-		marginTop: 'auto',
-		paddingVertical: spacingY._20,
-	},
-});

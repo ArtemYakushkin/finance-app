@@ -1,12 +1,12 @@
-import { colors, radius } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { getFilePath } from '@/services/imageService';
+import { globalStyles } from '@/styles/global';
 import { ImageUploadProps } from '@/types';
-import { scale, verticalScale } from '@/utils/styling';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Typo from './Typo';
 
 const ImageUpload = ({
@@ -35,10 +35,7 @@ const ImageUpload = ({
 			{!file && (
 				<TouchableOpacity
 					onPress={pickImage}
-					style={[
-						styles.inputContainer,
-						containerStyle && containerStyle,
-					]}
+					style={[globalStyles.uploadContainer, containerStyle && containerStyle]}
 				>
 					<Icons.UploadSimple color={colors.neutral200} />
 					{placeholder && <Typo size={15}>{placeholder}</Typo>}
@@ -46,22 +43,10 @@ const ImageUpload = ({
 			)}
 
 			{file && (
-				<View style={[styles.image, imageStyle && imageStyle]}>
-					<Image
-						style={{ flex: 1 }}
-						source={getFilePath(file)}
-						contentFit="cover"
-						transition={100}
-					/>
-					<TouchableOpacity
-						style={styles.deleteIcon}
-						onPress={onClear}
-					>
-						<Icons.XCircle
-							size={verticalScale(24)}
-							color={colors.white}
-							weight="fill"
-						/>
+				<View style={[globalStyles.uploadImage, imageStyle && imageStyle]}>
+					<Image style={{ flex: 1 }} source={getFilePath(file)} contentFit="cover" transition={100} />
+					<TouchableOpacity style={globalStyles.uploadDeleteIcon} onPress={onClear}>
+						<Icons.XCircle size={24} color={colors.neutral100} weight="fill" />
 					</TouchableOpacity>
 				</View>
 			)}
@@ -70,37 +55,3 @@ const ImageUpload = ({
 };
 
 export default ImageUpload;
-
-const styles = StyleSheet.create({
-	inputContainer: {
-		height: verticalScale(54),
-		backgroundColor: colors.neutral700,
-		borderRadius: radius._15,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		gap: 10,
-		borderWidth: 1,
-		borderColor: colors.neutral500,
-		borderStyle: 'dashed',
-	},
-	image: {
-		height: scale(150),
-		width: scale(150),
-		borderRadius: radius._15,
-		borderCurve: 'continuous',
-		overflow: 'hidden',
-	},
-	deleteIcon: {
-		width: 24,
-		height: 24,
-		borderRadius: radius._15,
-		position: 'absolute',
-		top: scale(6),
-		right: scale(6),
-		shadowColor: colors.black,
-		shadowOffset: { width: 0, height: 5 },
-		shadowOpacity: 1,
-		shadowRadius: 10,
-	},
-});

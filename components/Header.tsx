@@ -1,12 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
-import Typo from './Typo';
+import { globalStyles } from '@/styles/global';
 import { HeaderProps } from '@/types';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import Typo from './Typo';
 
 const Header = ({ title = '', leftIcon, style }: HeaderProps) => {
 	return (
-		<View style={[styles.container, style]}>
-			{leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+		<View style={[globalStyles.headerTop, style]}>
+			{leftIcon && <View style={globalStyles.headerIcon}>{leftIcon}</View>}
 			{title && (
 				<Typo
 					size={22}
@@ -24,14 +25,3 @@ const Header = ({ title = '', leftIcon, style }: HeaderProps) => {
 };
 
 export default Header;
-
-const styles = StyleSheet.create({
-	container: {
-		width: '100%',
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	leftIcon: {
-		alignSelf: 'flex-start',
-	},
-});

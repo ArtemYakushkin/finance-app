@@ -4,20 +4,17 @@ import Input from '@/components/Input';
 import ModalWrapper from '@/components/ModalWrapper';
 import TransactionList from '@/components/TransactionList';
 import { categoryGroups, expenseCategories, incomeCategory } from '@/constants/data';
-import { spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
+import { globalStyles } from '@/styles/global';
 import { TransactionType } from '@/types';
-import { useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 const SearchModal = () => {
 	const { user } = useAuth();
 	const [search, setSearch] = useState('');
-	const [loading, setLoading] = useState(false);
-	const router = useRouter();
 
 	const constrains = [where('uid', '==', user?.uid), orderBy('date', 'desc')];
 
@@ -64,10 +61,11 @@ const SearchModal = () => {
 
 	return (
 		<ModalWrapper>
-			<View style={styles.container}>
-				<Header title={'Пошук'} leftIcon={<BackButton />} style={{ marginBottom: spacingY._10 }} />
-				<ScrollView contentContainerStyle={styles.form}>
-					<View style={styles.inputContainer}>
+			<View style={[globalStyles.container, { justifyContent: 'space-between' }]}>
+				<Header title={'Пошук'} leftIcon={<BackButton />} />
+
+				<ScrollView contentContainerStyle={globalStyles.modalForm} showsVerticalScrollIndicator={false}>
+					<View style={{ gap: 10, paddingHorizontal: 5 }}>
 						<Input placeholder="Знайти..." value={search} onChangeText={(value) => setSearch(value)} />
 					</View>
 
@@ -86,18 +84,3 @@ const SearchModal = () => {
 };
 
 export default SearchModal;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-		paddingHorizontal: spacingY._20,
-	},
-	form: {
-		gap: spacingY._30,
-		marginTop: spacingY._15,
-	},
-	inputContainer: {
-		gap: spacingY._10,
-	},
-});

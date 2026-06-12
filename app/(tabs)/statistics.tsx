@@ -2,17 +2,19 @@ import Header from '@/components/Header';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
 import { categoryGroups } from '@/constants/data';
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { BUTTON_GRADIENT, MAIN_GRADIENT } from '@/constants/gradient';
+import { SHADOW_BLOCK } from '@/constants/shadow';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import { fetchCategories, fetchMonthStats, fetchYearStats } from '@/services/transactionService';
+import { globalStyles } from '@/styles/global';
 import { CategoryType, TransactionType } from '@/types';
 import { getCurrencySymbol } from '@/utils/common';
-import { scale, verticalScale } from '@/utils/styling';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
 import { CaretLeft, CaretRight } from 'phosphor-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { Shadow } from 'react-native-shadow-2';
 
@@ -28,9 +30,7 @@ const Statistics = () => {
 	});
 
 	const currencySymbol = getCurrencySymbol(user?.currency);
-	const lightShadow = 'rgba(65, 71, 85, 0.5)';
-	const darkShadow = colors.gradientEnd;
-	const btnRadius = radius._17;
+	const btnRadius = 17;
 
 	useFocusEffect(
 		useCallback(() => {
@@ -157,39 +157,38 @@ const Statistics = () => {
 
 	return (
 		<ScreenWrapper>
-			<View style={styles.container}>
-				<Header title="Статистика" style={{ marginBottom: spacingY._10 }} />
+			<View style={globalStyles.container}>
+				<Header title="Статистика" />
 
-				<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-					<View style={styles.segmentedWrapper}>
-						<Shadow
-							distance={8}
-							startColor={lightShadow}
-							offset={[-1, -1]}
-							stretch
-							containerStyle={{ borderRadius: btnRadius }}
-							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
-						>
-							<Shadow
-								distance={8}
-								startColor={darkShadow}
-								offset={[3, 3]}
-								stretch
-								style={styles.shadowWrapper}
-							>
-								<View style={[styles.segmentedInner, { backgroundColor: colors.gradientMid }]}>
+				<ScrollView contentContainerStyle={globalStyles.statScrollContent} showsVerticalScrollIndicator={false}>
+					<View>
+						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: btnRadius, alignSelf: 'stretch' }}>
+							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
+								<View style={globalStyles.statSegmentWrap}>
 									{['Місяць', 'Рік'].map((label, index) => (
 										<TouchableOpacity
 											key={label}
-											style={styles.segmentBtn}
+											style={globalStyles.statSegmentBtn}
 											onPress={() => setActiveIndex(index)}
 										>
 											{activeIndex === index ? (
-												<View style={styles.activeSegment}>
-													<Text style={styles.activeText}>{label}</Text>
+												<View style={globalStyles.statSegmentActive}>
+													<Text
+														style={{ color: colors.white, fontWeight: '700', fontSize: 13 }}
+													>
+														{label}
+													</Text>
 												</View>
 											) : (
-												<Text style={styles.inactiveText}>{label}</Text>
+												<Text
+													style={{
+														color: colors.neutral400,
+														textAlign: 'center',
+														fontSize: 13,
+													}}
+												>
+													{label}
+												</Text>
 											)}
 										</TouchableOpacity>
 									))}
@@ -198,43 +197,27 @@ const Statistics = () => {
 						</Shadow>
 					</View>
 
-					<View style={styles.dateNavigation}>
+					<View style={globalStyles.statDateWrap}>
 						<TouchableOpacity onPress={() => handleMoveDate(-1)}>
-							<CaretLeft size={verticalScale(22)} color={colors.neutral200} weight="bold" />
+							<CaretLeft size={22} color={colors.neutral200} weight="bold" />
 						</TouchableOpacity>
-						<Typo size={16} fontWeight={'600'} style={{ textTransform: 'capitalize' }}>
+						<Typo size={18} fontWeight={'600'} style={{ textTransform: 'capitalize' }}>
 							{getPeriodText()}
 						</Typo>
 						<TouchableOpacity onPress={() => handleMoveDate(1)}>
-							<CaretRight size={verticalScale(22)} color={colors.neutral200} weight="bold" />
+							<CaretRight size={22} color={colors.neutral200} weight="bold" />
 						</TouchableOpacity>
 					</View>
 
-					<View style={styles.chartWrapper}>
-						<Shadow
-							distance={6}
-							startColor={lightShadow}
-							offset={[-1, -1]}
-							stretch
-							containerStyle={{ borderRadius: btnRadius }}
-							style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
-						>
-							<Shadow
-								distance={8}
-								startColor={darkShadow}
-								offset={[3, 3]}
-								stretch
-								style={styles.shadowWrapper}
-							>
-								<LinearGradient
-									colors={[colors.gradientStart, colors.gradientMid]}
-									style={styles.pieInner}
-								>
+					<View>
+						<Shadow {...SHADOW_BLOCK.light} style={{ borderRadius: btnRadius, alignSelf: 'stretch' }}>
+							<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
+								<LinearGradient {...(MAIN_GRADIENT as any)} style={globalStyles.statPieInner}>
 									<Typo size={18} fontWeight={'600'} style={{ marginBottom: 20 }}>
 										Розподіл витрат
 									</Typo>
 									{pieData.length > 0 ? (
-										<View style={styles.pieContainer}>
+										<View style={globalStyles.statPieContainer}>
 											<PieChart
 												data={pieData}
 												donut
@@ -256,10 +239,15 @@ const Statistics = () => {
 													</View>
 												)}
 											/>
-											<View style={styles.legendContainer}>
+											<View style={globalStyles.statPieLegend}>
 												{pieData.map((item, idx) => (
-													<View key={idx} style={styles.legendItem}>
-														<View style={[styles.dot, { backgroundColor: item.color }]} />
+													<View key={idx} style={globalStyles.statPieLegendItem}>
+														<View
+															style={[
+																globalStyles.statPieLegendDot,
+																{ backgroundColor: item.color },
+															]}
+														/>
 														<Typo size={13} color={colors.neutral300}>
 															{item.text}
 														</Typo>
@@ -276,7 +264,7 @@ const Statistics = () => {
 											</View>
 										</View>
 									) : (
-										<View style={styles.noDataContainer}>
+										<View style={globalStyles.noDataContainer}>
 											<Typo color={colors.neutral400}>Немає даних</Typo>
 										</View>
 									)}
@@ -285,7 +273,7 @@ const Statistics = () => {
 						</Shadow>
 					</View>
 
-					<View style={{ gap: spacingY._15, paddingHorizontal: 10 }}>
+					<View style={{ gap: 15 }}>
 						<Typo size={18} fontWeight={'600'} style={{ textAlign: 'center' }}>
 							Деталі
 						</Typo>
@@ -294,32 +282,23 @@ const Statistics = () => {
 							return (
 								<Shadow
 									key={index}
-									distance={6}
-									startColor={lightShadow}
-									offset={[-1, -1]}
-									stretch
-									containerStyle={{ borderRadius: btnRadius }}
-									style={[styles.shadowWrapper, { borderRadius: btnRadius }]}
+									{...SHADOW_BLOCK.light}
+									style={{ borderRadius: btnRadius, alignSelf: 'stretch' }}
 								>
-									<Shadow
-										distance={8}
-										startColor={darkShadow}
-										offset={[3, 3]}
-										stretch
-										style={styles.shadowWrapper}
-									>
+									<Shadow {...SHADOW_BLOCK.dark} style={{ alignSelf: 'stretch' }}>
 										<LinearGradient
-											colors={[colors.gradientStart, colors.gradientMid]}
-											style={styles.categoryCard}
+											{...(BUTTON_GRADIENT as any)}
+											style={globalStyles.statCategoryCard}
 										>
-											<View style={styles.categoryInfo}>
-												<View style={[styles.iconWrapper, { backgroundColor: item.color }]}>
+											<View style={globalStyles.statCategoryInfo}>
+												<View
+													style={[
+														globalStyles.statIconWrapper,
+														{ backgroundColor: item.color },
+													]}
+												>
 													{IconComponent && (
-														<IconComponent
-															size={verticalScale(20)}
-															weight="fill"
-															color={colors.white}
-														/>
+														<IconComponent size={20} weight="fill" color={colors.white} />
 													)}
 												</View>
 												<Typo size={16} fontWeight={'500'}>
@@ -343,75 +322,3 @@ const Statistics = () => {
 };
 
 export default Statistics;
-
-const styles = StyleSheet.create({
-	container: { flex: 1, paddingHorizontal: spacingX._20 },
-	scrollContent: { gap: spacingY._30, paddingTop: spacingY._10, paddingBottom: verticalScale(30) },
-	segmentedWrapper: { paddingHorizontal: 10 },
-	segmentedInner: { flexDirection: 'row', height: verticalScale(46), borderRadius: radius._15, padding: 4 },
-	segmentBtn: { flex: 1, justifyContent: 'center' },
-	activeSegment: {
-		flex: 1,
-		backgroundColor: '#1c1f26',
-		borderRadius: radius._12,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	activeText: { color: colors.white, fontWeight: '700', fontSize: verticalScale(13) },
-	inactiveText: { color: colors.neutral400, textAlign: 'center', fontSize: verticalScale(13) },
-	dateNavigation: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		paddingHorizontal: 20,
-	},
-	chartWrapper: { paddingHorizontal: 10 },
-	chartInner: {
-		paddingTop: verticalScale(30),
-		paddingBottom: verticalScale(15),
-		paddingRight: scale(10),
-		borderRadius: radius._20,
-		height: verticalScale(270),
-		borderWidth: 1,
-		borderColor: 'rgba(255,255,255,0.05)',
-	},
-	axisText: { color: colors.neutral400, fontSize: verticalScale(10) },
-	chartLoadingOverlay: {
-		...StyleSheet.absoluteFillObject,
-		backgroundColor: 'rgba(12, 13, 18, 0.8)',
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: radius._20,
-	},
-	noDataContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 100 },
-	shadowWrapper: { alignSelf: 'stretch' },
-	pieInner: {
-		padding: spacingX._15,
-		borderRadius: radius._20,
-		minHeight: verticalScale(200),
-		borderWidth: 1,
-		borderColor: 'rgba(255,255,255,0.05)',
-		alignItems: 'center',
-	},
-	pieContainer: { alignItems: 'center', gap: 15, width: '100%' },
-	legendContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 12 },
-	legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-	dot: { width: 8, height: 8, borderRadius: 4 },
-	categoryCard: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		padding: spacingX._12,
-		borderRadius: radius._15,
-		borderWidth: 1,
-		borderColor: 'rgba(255,255,255,0.05)',
-	},
-	categoryInfo: { flexDirection: 'row', alignItems: 'center', gap: spacingX._12 },
-	iconWrapper: {
-		width: verticalScale(40),
-		height: verticalScale(40),
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: radius._10,
-	},
-});

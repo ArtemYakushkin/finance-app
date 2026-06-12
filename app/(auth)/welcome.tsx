@@ -1,11 +1,10 @@
 import Button from '@/components/Button';
 import ScreenWrapper from '@/components/ScreenWrapper';
 import Typo from '@/components/Typo';
-import { colors, spacingX } from '@/constants/theme';
-import { verticalScale } from '@/utils/styling';
+import { colors } from '@/constants/theme';
+import { globalStyles } from '@/styles/global';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 const welcome = () => {
@@ -13,12 +12,9 @@ const welcome = () => {
 
 	return (
 		<ScreenWrapper>
-			<View style={styles.container}>
+			<View style={globalStyles.welcomeContainer}>
 				<View>
-					<TouchableOpacity
-						style={styles.loginButton}
-						onPress={() => router.push('/(auth)/login')}
-					>
+					<TouchableOpacity style={globalStyles.welcomeButton} onPress={() => router.push('/(auth)/login')}>
 						<Typo fontWeight={'500'} color={colors.primaryLight}>
 							Увійти
 						</Typo>
@@ -27,11 +23,11 @@ const welcome = () => {
 					<Animated.Image
 						entering={FadeIn.duration(2000)}
 						source={require('../../assets/images/welcom-img.png')}
-						style={styles.welcomeImage}
+						style={globalStyles.welcomeImage}
 					/>
 				</View>
 
-				<View style={styles.footer}>
+				<View style={globalStyles.welcomeFooter}>
 					<View style={{ alignItems: 'center' }}>
 						<Typo size={30} fontWeight={'800'}>
 							Фінанси
@@ -41,13 +37,9 @@ const welcome = () => {
 						</Typo>
 					</View>
 
-					<View style={styles.buttonContainer}>
+					<View style={globalStyles.welcomeBtnContainer}>
 						<Button onPress={() => router.push('/(auth)/register')}>
-							<Typo
-								size={26}
-								color={colors.primaryLight}
-								fontWeight={'700'}
-							>
+							<Typo size={26} color={colors.primaryLight} fontWeight={'700'}>
 								Почати
 							</Typo>
 						</Button>
@@ -59,30 +51,3 @@ const welcome = () => {
 };
 
 export default welcome;
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		justifyContent: 'space-between',
-	},
-	welcomeImage: {
-		width: '100%',
-		height: verticalScale(450),
-		alignSelf: 'center',
-		marginTop: verticalScale(30),
-	},
-	loginButton: {
-		alignSelf: 'flex-end',
-		marginRight: spacingX._20,
-	},
-	footer: {
-		alignItems: 'center',
-		paddingTop: verticalScale(30),
-		paddingBottom: verticalScale(72),
-		gap: spacingX._20,
-	},
-	buttonContainer: {
-		width: '100%',
-		paddingHorizontal: spacingX._20,
-	},
-});

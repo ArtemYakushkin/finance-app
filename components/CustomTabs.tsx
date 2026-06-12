@@ -1,56 +1,47 @@
-import { colors, radius, spacingY } from '@/constants/theme';
-import { verticalScale } from '@/utils/styling';
+import { BUTTON_GRADIENT } from '@/constants/gradient';
+import { SHADOW_BUTTON } from '@/constants/shadow';
+import { colors } from '@/constants/theme';
+import { globalStyles } from '@/styles/global';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Icons from 'phosphor-react-native';
-import React from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Shadow } from 'react-native-shadow-2';
 
 const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-	const bgColor = '#171717';
-	const btnRadius = radius._12;
-
 	const tabbarIcons: any = {
 		index: (isFocused: boolean) => (
 			<Icons.House
-				size={verticalScale(28)}
+				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
 		statistics: (isFocused: boolean) => (
 			<Icons.ChartBar
-				size={verticalScale(28)}
+				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
 		wallet: (isFocused: boolean) => (
 			<Icons.Wallet
-				size={verticalScale(28)}
+				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
 		profile: (isFocused: boolean) => (
 			<Icons.User
-				size={verticalScale(28)}
+				size={28}
 				weight={isFocused ? 'fill' : 'regular'}
 				color={isFocused ? colors.primaryLight : colors.neutral400}
 			/>
 		),
 	};
 
-	const gradientColors: [string, string, ...string[]] = [
-		colors.gradientStart,
-		colors.gradientMid,
-	];
-	const lightShadow = 'rgba(65, 71, 85, 0.5)';
-	const darkShadow = colors.gradientEnd;
-
 	return (
-		<View style={[styles.tabbar]}>
+		<View style={[globalStyles.tabBar]}>
 			{state.routes.map((route, index) => {
 				const { options } = descriptors[route.key];
 				const isFocused = state.index === index;
@@ -67,55 +58,26 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 				};
 
 				return (
-					<View key={route.name} style={styles.itemWrapper}>
+					<View key={route.name} style={{ justifyContent: 'center', alignItems: 'center' }}>
 						{isFocused ? (
-							<Shadow
-								distance={6}
-								startColor={lightShadow}
-								offset={[-1, -1]}
-								stretch
-								containerStyle={{ borderRadius: btnRadius }}
-								style={[
-									styles.shadowWrapper,
-									{ borderRadius: btnRadius },
-								]}
-							>
-								<Shadow
-									distance={8}
-									startColor={darkShadow}
-									offset={[3, 3]}
-									stretch
-									style={styles.shadowWrapper}
-								>
+							<Shadow {...SHADOW_BUTTON.light} style={{ borderRadius: 12, alignSelf: 'stretch' }}>
+								<Shadow {...SHADOW_BUTTON.dark} style={{ alignSelf: 'stretch' }}>
 									<TouchableOpacity
 										onPress={onPress}
 										style={[
-											styles.tabbarItem,
-											styles.activeItem,
-											{ backgroundColor: bgColor },
+											globalStyles.tabItem,
+											globalStyles.tabActiveItem,
+											{ backgroundColor: '#171717' },
 										]}
 									>
-										<LinearGradient
-											colors={gradientColors}
-											start={{ x: 0, y: 0 }}
-											end={{ x: 1, y: 1 }}
-											style={[
-												styles.button,
-												{ borderRadius: btnRadius },
-											]}
-										>
-											{tabbarIcons[route.name]?.(
-												isFocused,
-											)}
+										<LinearGradient {...BUTTON_GRADIENT} style={globalStyles.tabButton}>
+											{tabbarIcons[route.name]?.(isFocused)}
 										</LinearGradient>
 									</TouchableOpacity>
 								</Shadow>
 							</Shadow>
 						) : (
-							<TouchableOpacity
-								onPress={onPress}
-								style={styles.tabbarItem}
-							>
+							<TouchableOpacity onPress={onPress} style={globalStyles.tabItem}>
 								{tabbarIcons[route.name]?.(isFocused)}
 							</TouchableOpacity>
 						)}
@@ -127,42 +89,3 @@ const CustomTabs = ({ state, descriptors, navigation }: BottomTabBarProps) => {
 };
 
 export default CustomTabs;
-
-const styles = StyleSheet.create({
-	tabbar: {
-		flexDirection: 'row',
-		width: '100%',
-		justifyContent: 'space-around',
-		alignItems: 'center',
-		backgroundColor: colors.gradientEnd,
-		paddingBottom: Platform.OS === 'ios' ? spacingY._20 : spacingY._60,
-		paddingTop: 15,
-	},
-	shadowWrapper: {
-		alignSelf: 'stretch',
-	},
-	itemWrapper: {
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	tabbarItem: {
-		width: verticalScale(50),
-		height: verticalScale(50),
-		borderRadius: radius._12,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	activeItem: {
-		borderWidth: 1,
-		borderColor: '#1B1B1B',
-	},
-	button: {
-		height: verticalScale(50),
-		width: '100%',
-		paddingHorizontal: 16,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 0.8,
-		borderColor: 'rgba(255, 255, 255, 0.08)',
-	},
-});

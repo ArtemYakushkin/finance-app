@@ -1,6 +1,7 @@
 import { categoryGroups, incomeCategory } from '@/constants/data';
-import { colors, radius, spacingX, spacingY } from '@/constants/theme';
+import { colors, spacingY } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
+import { globalStyles } from '@/styles/global';
 import { TransactionItemProps, TransactionListType, TransactionType } from '@/types';
 import { getCurrencySymbol } from '@/utils/common';
 import { verticalScale } from '@/utils/styling';
@@ -9,11 +10,11 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Loading from './Loading';
 import Typo from './Typo';
 
-const TransactionList = ({ data, title, loading, emptyListMessage, filterByMonth = false }: TransactionListType) => {
+const TransactionList = ({ data, loading, emptyListMessage, filterByMonth = false }: TransactionListType) => {
 	const router = useRouter();
 
 	const finalData = filterByMonth
@@ -43,21 +44,13 @@ const TransactionList = ({ data, title, loading, emptyListMessage, filterByMonth
 	};
 
 	return (
-		<View style={styles.container}>
-			{title && (
-				<Typo size={20} fontWeight={500}>
-					{title}
-				</Typo>
-			)}
-
-			<View style={styles.list}>
-				<FlashList
-					data={finalData}
-					renderItem={({ item, index }) => (
-						<TransactionItem item={item} index={index} handleClick={handleClick} />
-					)}
-				/>
-			</View>
+		<View>
+			<FlashList
+				data={finalData}
+				renderItem={({ item, index }) => (
+					<TransactionItem item={item} index={index} handleClick={handleClick} />
+				)}
+			/>
 
 			{!loading && finalData.length == 0 && (
 				<Typo size={15} color={colors.neutral400} style={{ textAlign: 'center', marginTop: spacingY._15 }}>
@@ -74,7 +67,7 @@ const TransactionList = ({ data, title, loading, emptyListMessage, filterByMonth
 	);
 };
 
-const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => {
+const TransactionItem = ({ item, handleClick }: TransactionItemProps) => {
 	const { user } = useAuth();
 	const currencySymbol = getCurrencySymbol(user?.currency);
 
@@ -112,12 +105,12 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 	return (
 		<View style={{ marginBottom: spacingY._12 }}>
 			<Pressable onPress={() => handleClick(item)}>
-				<BlurView intensity={25} tint="dark" style={styles.row}>
-					<View style={[styles.icon, { backgroundColor: category.bgColor }]}>
+				<BlurView intensity={25} tint="dark" style={globalStyles.transRow}>
+					<View style={[globalStyles.transIcon, { backgroundColor: category.bgColor }]}>
 						{IconComponent && <IconComponent size={verticalScale(25)} weight="fill" color={colors.white} />}
 					</View>
 
-					<View style={styles.categoryDes}>
+					<View style={globalStyles.transCategoryDes}>
 						<Typo size={17} fontWeight={'600'}>
 							{item?.type === 'income' ? category.label : `${groupLabel} / ${category.label}`}
 						</Typo>
@@ -126,7 +119,7 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 						</Typo>
 					</View>
 
-					<View style={styles.amountDate}>
+					<View style={globalStyles.transAmountDate}>
 						<Typo fontWeight={'700'} color={item?.type == 'income' ? colors.primary : colors.rose}>
 							{`${item?.type == 'income' ? `+${currencySymbol}` : `-${currencySymbol}`} ${item?.amount}`}
 						</Typo>
@@ -141,40 +134,3 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 };
 
 export default TransactionList;
-
-const styles = StyleSheet.create({
-	container: {
-		gap: spacingY._17,
-	},
-	list: {
-		minHeight: 3,
-	},
-	row: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		gap: spacingX._12,
-		backgroundColor: 'rgba(41, 46, 58, 0.07)',
-		padding: spacingY._12,
-		borderRadius: radius._17,
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: 'rgba(255, 255, 255, 0.1)',
-	},
-	icon: {
-		height: verticalScale(44),
-		aspectRatio: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: radius._12,
-		borderCurve: 'continuous',
-	},
-	categoryDes: {
-		flex: 1,
-		gap: 2.5,
-	},
-	amountDate: {
-		alignItems: 'flex-end',
-		gap: 3,
-	},
-});

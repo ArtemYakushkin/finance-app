@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { limit, orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 const Home = () => {
 	const { user } = useAuth();

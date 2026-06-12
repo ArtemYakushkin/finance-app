@@ -1,13 +1,14 @@
-import { colors, spacingX, spacingY } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { useAuth } from '@/context/authContext';
 import useFetchData from '@/hooks/useFetchData';
+import { globalStyles } from '@/styles/global';
 import { WalletType } from '@/types';
 import { getCurrencySymbol } from '@/utils/common';
-import { scale, verticalScale } from '@/utils/styling';
+import { verticalScale } from '@/utils/styling';
 import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
-import { ImageBackground, StyleSheet, View } from 'react-native';
+import { ImageBackground, View } from 'react-native';
 import Typo from './Typo';
 
 const HomeCard = () => {
@@ -40,10 +41,14 @@ const HomeCard = () => {
 	};
 
 	return (
-		<ImageBackground source={require('../assets/images/Cards.png')} resizeMode="stretch" style={styles.bgImage}>
-			<View style={styles.container}>
+		<ImageBackground
+			source={require('../assets/images/Cards.png')}
+			resizeMode="stretch"
+			style={globalStyles.bgImageCard}
+		>
+			<View style={globalStyles.containerCard}>
 				<View>
-					<View style={styles.totalBalanceRow}>
+					<View style={globalStyles.totalBalanceCard}>
 						<Typo size={17} fontWeight={500} color={colors.neutral300}>
 							Загальний баланс
 						</Typo>
@@ -55,33 +60,33 @@ const HomeCard = () => {
 					</Typo>
 				</View>
 
-				<View style={styles.stats}>
-					<View style={{ gap: verticalScale(5) }}>
-						<View style={styles.incomeExpense}>
-							<View style={styles.statsIcon}>
-								<Icons.ArrowDown size={verticalScale(15)} color={colors.black} weight="bold" />
+				<View style={globalStyles.statsCard}>
+					<View style={{ gap: 5 }}>
+						<View style={globalStyles.incomeExpenseCard}>
+							<View style={globalStyles.statsIconCard}>
+								<Icons.ArrowUp size={15} color={colors.black} weight="bold" />
 							</View>
 							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Дохід
 							</Typo>
 						</View>
-						<View style={{ alignSelf: 'center' }}>
+						<View>
 							<Typo size={17} fontWeight={600} color={colors.green}>
 								{currencySymbol} {walletLoading ? '----' : getTotals()?.income?.toFixed(2)}
 							</Typo>
 						</View>
 					</View>
 
-					<View style={{ gap: verticalScale(5) }}>
-						<View style={styles.incomeExpense}>
-							<View style={styles.statsIcon}>
-								<Icons.ArrowUp size={verticalScale(15)} color={colors.black} weight="bold" />
+					<View style={{ gap: 5 }}>
+						<View style={globalStyles.incomeExpenseCard}>
+							<View style={globalStyles.statsIconCard}>
+								<Icons.ArrowDown size={15} color={colors.black} weight="bold" />
 							</View>
 							<Typo size={16} fontWeight={500} color={colors.neutral300}>
 								Витрати
 							</Typo>
 						</View>
-						<View style={{ alignSelf: 'center' }}>
+						<View>
 							<Typo size={17} fontWeight={600} color={colors.rose}>
 								{currencySymbol} {walletLoading ? '----' : getTotals()?.expenses?.toFixed(2)}
 							</Typo>
@@ -94,38 +99,3 @@ const HomeCard = () => {
 };
 
 export default HomeCard;
-
-const styles = StyleSheet.create({
-	bgImage: {
-		height: scale(220),
-		width: '100%',
-	},
-	container: {
-		padding: spacingX._20,
-		paddingHorizontal: scale(23),
-		height: '87%',
-		width: '100%',
-		justifyContent: 'space-between',
-	},
-	totalBalanceRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: spacingY._5,
-	},
-	stats: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	statsIcon: {
-		backgroundColor: colors.neutral350,
-		padding: spacingY._5,
-		borderRadius: 50,
-	},
-	incomeExpense: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: spacingY._7,
-	},
-});
